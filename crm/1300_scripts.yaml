@@ -1,0 +1,1354 @@
+scripts:
+  Allocate:
+    source: |-
+      // Automation triggers will help you manage your records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  Allocation_-_Calculate_totals:
+    source: "// When an allocation is created or updated, the related receipt
+      needs to be updated\n\n// First step: get the receipt.\nlet receiptId =
+      record.values.receiptId\n\n// If there is no receipt to update, exit\nif
+      (typeof receiptId == \"undefined\") {\n  return true\n}\n\n// Find the receipt
+      with the ID\nconst ReceiptModule = crust.api.module.find('Receipt')\nconst
+      ReceiptModuleData = await crust.api.record.find(ReceiptModule, receiptId)\n\n//
+      Get the totals\nlet amount = ReceiptModuleData.values.amount\nif (typeof
+      amount == \"undefined\") {\n  amount = 0\n}\nlet total_allocated = 0\n\n//
+      Get all allocations for the receipt (because a receipt can have multiple
+      allocations)\nconst AllocationModule = crust.api.module.find('Allocation')\nconst
+      AllocationModuleData = await crust.api.record.find(AllocationModule, `receiptId
+      = ${receiptId}`)\nconst allocations = AllocationModuleData.records\n\n//Loop
+      through the allocations\nfor (let i = 0; i < allocations.length; i+=1) {\n
+      \ \n  //Get the allocation\n  let allocation = allocations[i]\n  \n  let
+      allocation_amount = allocation.values.amount\n  if (typeof allocation_amount
+      !== \"undefined\") {\n    total_allocated = total_allocated + parseFloat(allocation_amount)\n
+      \ }\n  \n}\n\n// Calculate the variation\nlet variation = parseFloat(amount)
+      - total_allocated\n\n// Set the calculated numbers\nReceiptModuleData.values.total_allocated
+      = total_allocated\nReceiptModuleData.values.variation = variation\n\n//
+      Save the record\nawait crust.api.record.save(ReceiptModuleData)"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+  CCStatement_-_Set_statement_label:
+    source: |-
+      // Set the record label string
+      let recordLabel = ''
+
+      // Get the date
+      let date = record.values.date
+      if (typeof date == "undefined") {
+        date = ''
+      } else {
+        recordLabel = date
+      }
+
+      // Get the description
+      let description = record.values.description
+      if (typeof description == "undefined") {
+        description = ''
+      } else {
+        recordLabel = recordLabel + ' - ' + description
+      }
+
+      // Get the amount
+      let amount = record.values.amount
+      if (typeof amount == "undefined") {
+        amount = ''
+      } else {
+        recordLabel = recordLabel + ' ($' + amount + ')'
+      }
+
+      // Set the label
+      record.values.ccstatement_label = recordLabel
+
+      // Save the record
+      await crust.api.record.save(record)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+  DONE_-_Account_Create_new_opportunity:
+    source: |-
+      //Get the default settings
+      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+
+        let opportunityCloseDays = defaultSettings.values.OpportunityCloseDateDays
+        let opportunityProbability = defaultSettings.values.OpportunityProbability
+        let opportunityForecaseCategory = defaultSettings.values.OpportunityForecaseCategory
+        let opportunityStagename = defaultSettings.values.OpportunityStagename
+
+        //Calculate the expiration date
+        let m = new Date()
+        m.setDate(m.getDate() + parseInt(opportunityCloseDays, 10))
+        let closeDate = m.getUTCFullYear() + "/" + (m.getUTCMonth() + 1) + "/" + m.getUTCDate() + " " + m.getUTCHours() + ":" + m.getUTCMinutes() + ":" + m.getUTCSeconds()
+
+        // Find the contact we want to link the new case to (by default, the primary contact)
+        return Compose.findRecords(`AccountId = ${$record.recordID}`, 'Contact')
+
+          .then(({ set, filter }) => {
+
+            let ContactId, SuppliedName, SuppliedEmail, SuppliedPhone
+
+            // Loop through the contacts of the account, to save the primary contact
+            set.forEach(r => {
+
+              //Check if it's the primary contact
+              let contactIsPrimary = r.values.IsPrimary
+              if (contactIsPrimary === '1') {
+
+                //Add the contact
+                ContactId = r.recordID
+              }
+            })
+
+            // Create the related opportunity
+            return Compose.makeRecord({
+              'OwnerId': $record.values.OwnerId,
+              'LeadSource': $record.values.LeadSource,
+              'Name': '(unnamed)',
+              'AccountId': $record.recordID,
+              'IsClosed': 'No',
+              'IsWon': 'No',
+              'CloseDate': closeDate,
+              'Probability': opportunityProbability,
+              'ForecastCategory': opportunityForecaseCategory,
+              'StageName': opportunityStagename
+            }, 'Opportunity')
+
+              .then(myOpportunity => {
+
+                return Compose.saveRecord(myOpportunity)
+
+              }).then(mySavedOpportunity => {
+
+                //Create a new contact linked to the opportunity
+                return Compose.makeRecord({
+                  'ContactId': ContactId,
+                  'OpportunityId': mySavedOpportunity.recordID,
+                  'IsPrimary': '1'
+                }, 'OpportunityContactRole')
+
+                  .then(myOpportunityContactRole => {
+
+                    return Compose.saveRecord(myOpportunityContactRole)
+
+                      .then(() => {
+
+                        // Notify current user
+                        ComposeUI.success(`The new opportunity has been created.`)
+
+
+                      }).then(() => {
+
+                        // Go to the record
+                        ComposeUI.gotoRecordEditor(mySavedOpportunity)
+
+                      }).catch(err => {
+                        // solve the problem
+                        console.error(err)
+                      })
+                  }).catch(err => {
+                    // solve the problem
+                    console.error(err)
+                  })
+              }).catch(err => {
+                // solve the problem
+                console.error(err)
+              })
+          }).catch(err => {
+            // solve the problem
+            console.error(err)
+          })
+      }).catch(err => {
+        // solve the problem
+        console.error(err)
+      })
+    async: false
+    runInUA: true
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_-_Case_Insert_case_number:
+    source: "//Get the default settings\nreturn Compose.findRecordByID('96976273003249666',
+      'DefaultSettings').then(defaultSettings => {\n  \n  // Map the case number\n
+      \ let nextCaseNumber = defaultSettings.values.CaseNextNumber\n  if (typeof
+      nextCaseNumber == \"undefined\" || nextCaseNumber === '' || isNaN(nextCaseNumber))
+      {\n    nextCaseNumber = 0\n  }\n  \n  $record.values.CaseNumber = nextCaseNumber\n
+      \ let nextCaseNumberUpdated = parseInt(nextCaseNumber,10) + 1\n     \n  //
+      Update the config\n  defaultSettings.values.CaseNextNumber = nextCaseNumberUpdated\n
+      \ return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings
+      => {\n    \n    console.log('Record saved, new ID', mySavedDefaultSettings.recordID)\n\n
+      \ }).catch(err => {\n   // solve the problem\n   console.error(err)\n  })\n}).catch(err
+      => {\n // solve the problem\n console.error(err)\n})"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - enabled: false
+      event: afterCreate
+      module: Case
+      resource: compose:record
+    - event: beforeCreate
+      module: Case
+      resource: compose:record
+  DONE_-_Contact_Set_record_label:
+    source: "// Set the record label string\nlet recordLabel = ''\n\n// Get the
+      first name\nlet firstName = $record.values.FirstName\nif (!firstName) {\n
+      \ firstName = ''\n}\n\n// Get the last name\nlet lastName = $record.values.LastName\nif
+      (!lastName) {\n  lastName = ''\n}\n\n// Create the full name\nlet fullName
+      = ''\nif ((firstName !== '') && (lastName === '')) {\n  recordLabel = firstName\n}\n\nif
+      ((firstName === '') && (lastName !== '')) {\n  recordLabel = lastName\n}\n\nif
+      ((firstName !== '') && (lastName !== '')) {\n  recordLabel = firstName +
+      ' ' + lastName\n}\n\n// Get the company name from the account\n// Check
+      if there is a related account, to map the fields of the account\nlet accountId
+      = $record.values.AccountId\nif (accountId) {\n    return Compose.findRecordByID(accountId,
+      'Account').then(accountRecord => {\n    \n      // Add to the record label
+      \n      recordLabel = recordLabel + ' (' + accountRecord.values.AccountName
+      + ')'\n      $record.values.RecordLabel = recordLabel\n\n    }).catch(err
+      => {\n      // solve the problem\n      $record.values.RecordLabel = recordLabel\n\n
+      \     console.error(err)\n    })\n  \n}"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - enabled: false
+      event: afterCreate
+      module: Contact
+      resource: compose:record
+    - enabled: false
+      event: afterUpdate
+      module: Contact
+      resource: compose:record
+    - event: beforeUpdate
+      module: Contact
+      resource: compose:record
+    - event: beforeCreate
+      module: Contact
+      resource: compose:record
+  DONE_-_Lead_Set_record_label:
+    source: |-
+      // Set the record label string
+      let recordLabel = ''
+
+      // Get the first name
+      let firstName = $record.values.FirstName
+      if (!firstName) {
+        fistName = ''
+      }
+
+      // Get the last name
+      let lastName = $record.values.LastName
+      if (!lastName) {
+        lastName = ''
+      }
+
+      // Create the full name
+      let fullName = ''
+      if ((firstName !== '') && (lastName === '')) {
+        recordLabel = firstName
+      }
+
+      if ((firstName === '') && (lastName !== '')) {
+        recordLabel = lastName
+      }
+
+      if ((firstName !== '') && (lastName !== '')) {
+        recordLabel = firstName + ' ' + lastName
+      }
+
+      // Get the company name
+      let company = $record.values.Company
+      if (!company) {
+        company = ''
+      }
+
+      // Add the company name (if there is one)
+      if (company !== '') {
+        recordLabel = recordLabel + ' (' + company + ')'
+      }
+
+      // Set the label
+      $record.values.RecordLabel = recordLabel
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - enabled: false
+      event: afterCreate
+      module: Lead
+      resource: compose:record
+    - enabled: false
+      event: afterUpdate
+      module: Lead
+      resource: compose:record
+    - event: beforeUpdate
+      module: Lead
+      resource: compose:record
+    - event: beforeCreate
+      module: Lead
+      resource: compose:record
+  DONE_-_Quote_Approve_quote:
+    source: |-
+      //Check if the quote has the correct status
+      if ($record.values.Status !== 'In Review') {
+        // Inform
+        ComposeUI.warning(`A quote needs to have the status In Review in order to be approved.`)
+        return true
+      }
+
+      //Change value
+      $record.values.Status = 'Approved'
+
+      return Compose.saveRecord($record)
+        .then(mySavedRecord => {
+
+          // Get the email of the owner
+          return System.findUserByID($record.createdBy).then(user => {
+
+            // Send the mail
+            return Compose.sendMail(
+              user.email,
+              `Quote "${$record.values.Name}" has been approved`,
+              { html: `The following quote has been approved: <br><br><a href="https://latest.cortezaproject.org/compose/ns/crm/pages/69625756459728913/record/${$record.recordID}/edit">${$record.values.Name}<a>` }
+            )
+          }).then(() => {
+
+            // Notify current user
+            ComposeUI.success(`The quote has been approved and the quote owner has been notified via email.`)
+
+          })
+        }).catch(err => {
+          // solve the problem
+          console.error(err)
+        })
+    async: false
+    runInUA: true
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_-_Solution_insert_solution_number:
+    source: "//Get the default settings\nreturn Compose.findRecordByID('96976273003249666',
+      'DefaultSettings').then(defaultSettings => {\n  \n  // Map the case number\n
+      \ let nextSolutionNumber = defaultSettings.values.SolutionNextNumber\n  if
+      (typeof nextSolutionNumber == \"undefined\" || nextSolutionNumber === ''
+      || isNaN(nextSolutionNumber)) {\n    nextSolutionNumber = 0\n  }\n  $record.values.SolutionNumber
+      = nextSolutionNumber\n  let nextSolutionNumberUpdated = parseInt(nextSolutionNumber,10)
+      + 1\n  \n  // Update the config\n  defaultSettings.values.SolutionNextNumber
+      = nextSolutionNumberUpdated\n  \n  return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings
+      => {\n    console.log('Record saved, new ID', mySavedDefaultSettings.recordID)\n
+      \ }).catch(err => {\n   // solve the problem\n   console.error(err)\n  })\n
+      \ \n}).catch(err => {\n  // solve the problem\n  console.error(err)\n})"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - enabled: false
+      event: afterCreate
+      module: Solution
+      resource: compose:record
+    - event: beforeCreate
+      module: Solution
+      resource: compose:record
+  DONE_-_missing_UI_-_Account_Create_new_contract:
+    source: "//Get the default settings\nreturn Compose.findRecordByID('96976273003249666',
+      'DefaultSettings').then(defaultSettings => {\n  \n  // Map the case number\n
+      \ let ContractDefaultTime = defaultSettings.values.ContractDefaultTime\n\n
+      \ // Get the contract number\n  let nextContractNumber = defaultSettings.values.ContractNextNumber\n
+      \ if (typeof nextContractNumber == \"undefined\" || nextContractNumber ===
+      '' || isNaN(nextContractNumber)) {\n    nextContractNumber = 0\n  }\n  \n
+      \ return Compose.makeRecord({\n    'OwnerId' : $record.values.OwnerId,\n
+      \   'AccountId' : $record.recordID,\n    'Status' : 'Draft',\n    'BillingStreet'
+      : $record.values.BillingStreet,\n    'BillingCity' : $record.values.BillingCity,\n
+      \   'BillingState' : $record.values.BillingState,\n    'BillingPostalCode'
+      : $record.values.BillingPostalCode,\n    'BillingCountry' : $record.values.BillingCountry,\n
+      \   'ShippingStreet' : $record.values.BillingStreet,\n    'ShippingCity'
+      : $record.values.BillingCity,\n    'ShippingState' : $record.values.BillingState,\n
+      \   'ShippingPostalCode' : $record.values.BillingPostalCode,\n    'ShippingCountry'
+      : $record.values.BillingCountry,\n    'ContractTerm' : ContractDefaultTime,\n
+      \   'ContractNumber' : nextContractNumber\n  }, 'Contract').then(myContract
+      => {\n    \n    // return was missing here. Set tjhe mySavedCase below\n
+      \   return Compose.saveRecord(myContract)\n    \n  }).then(mySavedContract
+      => {\n    let nextContractNumberUpdated = parseInt(nextContractNumber,10)
+      + 1\n   \n    // Update the config\n    defaultSettings.values.ContractNextNumber
+      = nextContractNumberUpdated\n    return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings
+      => {\n      \n      console.log('Record saved, new ID', mySavedDefaultSettings.recordID)\n\n
+      \   }).then(() => {\n\n      // Notify current user\n      ComposeUI.success(`The
+      new contract record has been created.`)\n      \n    }).then(() => {\n\n
+      \     // Go to the record\n      ComposeUI.gotoRecordEditor(mySavedContract)\n
+      \     \n    }).catch(err => {\n     // solve the problem\n     console.error(err)\n
+      \   })\n  }).catch(err => {\n   // solve the problem\n   console.error(err)\n
+      \ })\n}).catch(err => {\n // solve the problem\n console.error(err)\n})"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_-_missing_UI_-_Case_Set_status_to_Working:
+    source: "// Check if the case is already in the state \"Working\"\n// Commented
+      for now (so we can see why this script is not working.)\n/*if ($record.values.Status
+      === 'Working') {\n  // Case is set to working already. Exit\n  ComposeUI.success('The
+      status of this case is already set to \"Working\".')\n  return true\n}\n\n//
+      Check if the case is already closed\nif ($record.values.Status === 'Closed')
+      {\n  // Case is closed already. Exit\n  ComposeUI.success('This case is
+      already closed, so it cannot be set to \"Working\".')\n  return true\n}*/\n\n//
+      Update the status\n$record.values.Status = 'Working'\nlet caseRecord = $record\n\n//
+      Save the case\nreturn Compose.makeRecord({\n  'CaseId' : caseRecord.recordID,\n
+      \ 'Description' : 'State set to \"Working\"',\n  'Type' : 'State change'\n},
+      'CaseUpdate').then(myCaseUpdate => {\n\n  return Compose.saveRecord(myCaseUpdate)\n
+      \ \n}).then(myCaseUpdate => {\n\n  return Compose.saveRecord(caseRecord)\n\n}).catch(err
+      => {\n  // solve the problem\n  console.error(err)\n})"
+    async: false
+    runInUA: true
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_button_errormissing_refresh_-_Case_Set_status_to_Closed:
+    source: |-
+      // Check if the case is already closed
+      if ($record.values.Status === 'Closed') {
+        // Case is closed already. Exit
+        ComposeUI.success(`This case is already closed.`)
+        return true
+      }
+
+      // Check if there is a solution
+      let SolutionName = $record.values.SolutionName
+      let solutionRecord = $record.values.SolutionId
+
+      // If there is no solution, show that it's not possible to close the case
+      if ((!SolutionName) && (!solutionRecord)) {
+        ComposeUI.warning(`Unable to close the case. Please add a solution name or select an existing solution before closing the case.`)
+        return true
+      }
+
+      // Update the status
+      $record.values.IsClosed = true
+      var m = new Date()
+      var dateString = m.getUTCFullYear() + "/" + (m.getUTCMonth() + 1) + "/" + m.getUTCDate() + " " + m.getUTCHours() + ":" + m.getUTCMinutes() + ":" + m.getUTCSeconds()
+      $record.values.ClosedDate = dateString
+      $record.values.Status = 'Closed'
+
+      return Compose.saveRecord($record)
+        .then(mySavedRecord => {
+
+          // Create the CaseUpdate record
+          return Compose.makeRecord({
+            'Description': 'State set to "Closed',
+            'Type': 'State change',
+            'CaseId': $record.recordID
+          }, 'CaseUpdate')
+
+            .then(myCaseUpdate => {
+
+              return Compose.saveRecord(myCaseUpdate)
+
+            }).then(mySavedCaseUpdate => {
+
+              // Check if a solution record has been selected
+              if (solutionRecord) {
+
+                // If there is a solution record, map the values in the case
+                return Compose.findRecordByID(solutionRecord, 'Solution').then(solution => {
+                  $record.values.SolutionName = solution.values.SolutionName
+                  $record.values.SolutionNote = solution.values.SolutionNote
+                  $record.values.SolutionFile = solution.values.File
+
+                  return Compose.saveRecord($record)
+                }).catch(err => {
+
+                  // solve the problem
+                  console.error(err)
+                })
+              } else {
+
+                // If there is no solution record, check if the value "SubmitAsSolution" is checked. If so, save the solution as a Solution record
+                if ($record.values.SubmitAsSolution) {
+
+                  //Get the default settings
+                  return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+
+                    // Map the solution number
+                    let nextSolutionNumber = defaultSettings.values.SolutionNextNumber
+                    if (typeof nextSolutionNumber == "undefined" || nextSolutionNumber === '' || isNaN(nextSolutionNumber)) {
+                      nextSolutionNumber = 0
+                    }
+
+                    // Create the Solution record
+                    return Compose.makeRecord({
+                      'SolutionName': $record.values.SolutionName,
+                      'SolutionNote': $record.values.SolutionNote,
+                      'File': $record.values.SolutionFile,
+                      'Status': 'New',
+                      'IsPublished': '1',
+                      'CaseId': $record.recordID,
+                      'SolutionNumber': nextSolutionNumber,
+                      'ProductId': $record.values.ProductId
+                    }, 'Solution')
+
+                      .then(mySolution => {
+
+                        return Compose.saveRecord(mySolution)
+
+                      }).then(mySavedSolution => {
+
+                        // Save the solution record in the case record
+                        $record.values.SolutionId = mySavedSolution.recordID
+                        return Compose.saveRecord($record)
+
+                      }).then(mySavedSolution => {
+
+                        let nextSolutionNumberUpdated = parseInt(nextSolutionNumber, 10) + 1
+
+                        // Update the config
+                        defaultSettings.values.SolutionNextNumber = nextSolutionNumberUpdated
+                        return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
+
+                          console.log('Record saved, ID', mySavedDefaultSettings.recordID)
+
+
+                        }).catch(err => {
+                          // solve the problem
+                          console.error(err)
+                        })
+                      }).catch(err => {
+                        // solve the problem
+                        console.error(err)
+                      })
+                  }).catch(err => {
+                    // solve the problem
+                    console.error(err)
+                  })
+                }
+              }
+            }).catch(err => {
+              // solve the problem
+              console.error(err)
+            })
+        }).catch(err => {
+          // solve the problem
+          console.error(err)
+        })
+    async: false
+    runInUA: true
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_missing_ComposeUI_-_Account_Create_new_case:
+    source: "//Get the default settings\nreturn Compose.findRecordByID('96976273003249666',
+      'DefaultSettings').then(defaultSettings => {\n  \n  // Map the case number\n
+      \ let nextCaseNumber = defaultSettings.values.CaseNextNumber\n  if (typeof
+      nextCaseNumber == \"undefined\" || nextCaseNumber === '' || isNaN(nextCaseNumber))
+      {\n    nextCaseNumber = 0\n  }\n  \n  // Find the contact we want to link
+      the new case to (by default, the primary contact)\n  return Compose.findRecords(`AccountId
+      = ${$record.recordID}`, 'Contact').then(({ set, filter }) => {\n  \n    let
+      ContactId, SuppliedName, SuppliedEmail, SuppliedPhone\n\n    // Loop through
+      the contacts of the account, to save the primary contact\n    set.forEach(r
+      => {\n      \n      //Check if it's the primary contact\n      let contactIsPrimary
+      = r.values.IsPrimary\n      console.log(contactIsPrimary)\n      if (contactIsPrimary
+      === '1') {\n        \n        //Add the contact\n        ContactId = r.recordID\n
+      \       SuppliedName = r.values.FirstName + ' ' + r.values.LastName\n        SuppliedEmail
+      = r.values.Email\n        SuppliedPhone = r.values.Phone\n      }\n    })\n
+      \   \n    return Compose.makeRecord({\n      'OwnerId' : $record.values.OwnerId,\n
+      \     'Subject' : '(no subject)',\n      'ContactId' : ContactId,\n      'AccountId'
+      : $record.recordID,\n      'Status' : 'New',\n      'Priority' : 'Low',\n
+      \     'SuppliedName' : SuppliedName,\n      'SuppliedEmail' : SuppliedEmail,\n
+      \     'SuppliedPhone' : SuppliedPhone,\n      'CaseNumber' : nextCaseNumber\n
+      \   }, 'Case').then(myCase => {\n      \n      Compose.saveRecord(myCase)\n
+      \     \n    }).then(mySavedCase => {\n      let nextCaseNumberUpdated =
+      parseInt(nextCaseNumber,10) + 1\n      \n      // Update the config\n      defaultSettings.values.CaseNextNumber
+      = nextCaseNumberUpdated\n      return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings
+      => {\n        \n        console.log('Record saved, new ID', mySavedDefaultSettings.recordID)\n
+      \ \n      }).then(({ mySavedCase }) => {\n  \n        // Notify current
+      user\n        ComposeUI.success(`The new case has been created.`)\n      \n
+      \       \n      }).then(({ mySavedCase }) => {\n  \n        // Go to the
+      record\n        ComposeUI.gotoRecordEditor(mySavedCase)\n        \n      }).catch(err
+      => {\n       // solve the problem\n       console.error(err)\n      })\n
+      \   }).catch(err => {\n     // solve the problem\n     console.error(err)\n
+      \   })\n    \n    \n  }).catch(err => {\n   // solve the problem\n   console.error(err)\n
+      \ })\n}).catch(err => {\n // solve the problem\n console.error(err)\n})"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_missing_ComposeUI_-_Contact_Create_new_case:
+    source: "//Get the default settings\nreturn Compose.findRecordByID('96976273003249666',
+      'DefaultSettings').then(defaultSettings => {\n  \n  // Map the case number\n
+      \ let nextCaseNumber = defaultSettings.values.CaseNextNumber\n  if (typeof
+      nextCaseNumber == \"undefined\" || nextCaseNumber === '' || isNaN(nextCaseNumber))
+      {\n    nextCaseNumber = 0\n  }\n  \n  return Compose.makeRecord({\n    'OwnerId'
+      : $record.values.OwnerId,\n    'Subject' : '(no subject)',\n    'ContactId'
+      : $record.recordID,\n    'AccountId' : $record.values.AccountId,\n    'Status'
+      : 'New',\n    'Priority' : 'Low',\n    'SuppliedName' : $record.values.FirstName
+      + ' ' + $record.values.LastName,\n    'SuppliedEmail' : $record.values.Email,\n
+      \   'SuppliedPhone' : $record.values.Phone,\n    'CaseNumber' : nextCaseNumber\n
+      \ }, 'Case').then(myCase => {\n    \n    // return was missing here. Set
+      tjhe mySavedCase below\n    return Compose.saveRecord(myCase)\n    \n  }).then(mySavedCase
+      => {\n    let nextCaseNumberUpdated = parseInt(nextCaseNumber, 10) + 1\n
+      \   \n    // Update the config\n    defaultSettings.values.CaseNextNumber
+      = nextCaseNumberUpdated\n    return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings
+      => {\n      \n      console.log('Record saved, new ID', mySavedDefaultSettings.recordID)\n
+      \     // then(({ mySavedCase }) wasn't needed, since it is already defined\n
+      \     // for the entire block, starting at line 27\n    }).then(() => {\n\n
+      \     // Notify current user\n      ComposeUI.success(`The new case has
+      been created.`)\n      \n    }).then(() => {\n\n      // Go to the record\n
+      \     ComposeUI.gotoRecordEditor(mySavedCase)\n      \n    }).catch(err
+      => {\n     // solve the problem\n     console.error(err)\n    })\n  }).catch(err
+      => {\n   // solve the problem\n   console.error(err)\n  })\n}).catch(err
+      => {\n // solve the problem\n console.error(err)\n})"
+    async: false
+    runInUA: true
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_missing_ComposeUI_-_Lead_Convert_a_lead_into_an_account:
+    source: "if ($record.values.Status === 'Converted') {\n  // Lead already converted.
+      Inform user and exit\n  ComposeUI.warning('This lead is already converted.')\n
+      \ return true\n}\n\n// create new record of type/module Account and copy
+      all values\nreturn Compose.makeRecord({\n  'BillingStreet' : $record.values.Street,\n
+      \ 'BillingCity' : $record.values.City,\n  'BillingState' : $record.values.State,\n
+      \ 'BillingPostalCode' : $record.values.PostalCode,\n  'BillingCountry' :
+      $record.values.Country,\n  'AnnualRevenue' : $record.values.AnnualRevenue,\n
+      \ 'AccountName' : $record.values.Company,\n  'Description' : $record.values.Description,\n
+      \ 'Fax' : $record.values.Fax,\n  'Industry' : $record.values.Industry,\n
+      \ 'OwnerId' : $record.values.OwnerId,\n  'AccountSource' : $record.values.LeadSource,\n
+      \ 'Phone' : $record.values.Phone,\n  'NumberOfEmployees' : $record.values.NumberOfEmployees,\n
+      \ 'Rating' : $record.values.Rating,\n  'Website' : $record.values.Website,\n
+      \ 'Twitter' : $record.values.Twitter,\n  'Facebook' : $record.values.Facebook,\n
+      \ 'LinkedIn' : $record.values.LinkedIn\n}, 'Account').then(myAccount =>
+      {\n  \n  return Compose.saveRecord(myAccount)\n  \n}).then(mySavedAccount
+      => {\n\n  // Create the related contact\n  return Compose.makeRecord({\n
+      \   'MailingStreet' : $record.values.Street,\n    'MailingCity' : $record.values.City,\n
+      \   'MailingState' : $record.values.State,\n    'MailingPostalCode' : $record.values.PostalCode,\n
+      \   'MailingCountry' : $record.values.Country,\n    'Description' : $record.values.Description,\n
+      \   'DoNotCall' : $record.values.DoNotCall,\n    'Email' : $record.values.Email,\n
+      \   'HasOptedOutOfEmail' : $record.values.HasOptedOutOfEmail,\n    'Fax'
+      : $record.values.Fax,\n    'HasOptedOutOfFax' : $record.values.HasOptedOutOfFax,\n
+      \   'OwnerId' : $record.values.OwnerId,\n    'LeadSource' : $record.values.LeadSource,\n
+      \   'Website' : $record.values.Website,\n    'Twitter' : $record.values.Twitter,\n
+      \   'Facebook' : $record.values.Facebook,\n    'LinkedIn' : $record.values.LinkedIn,\n
+      \   'Salutation' : $record.values.Salutation,\n    'FirstName' : $record.values.FirstName,\n
+      \   'LastName' : $record.values.LastName,\n    'MobilePhone' : $record.values.MobilePhone,\n
+      \   'Phone' : $record.values.Phone,\n    'Title' : $record.values.Title,\n
+      \   'IsPrimary' : '1',\n    'AccountId' : mySavedAccount.recordID\n  },
+      'Contact').then(myContact => {\n    \n    return Compose.saveRecord(myContact)\n
+      \   \n  }).then(updatedAccount => {\n    \n    //Update the lead record\n
+      \   $record.values.Status = 'Converted'\n    $record.values.IsConverted
+      = 'Yes'\n    $record.values.ConvertedAccountId = mySavedAccount.recordID\n
+      \   $record.values.ConvertedContactId = mySavedAccount.recordID\n    $record.values.ConvertedDate
+      = mySavedAccount.createdAt\n  \n    return Compose.saveRecord($record)\n
+      \   \n  }).then(leadUser => {\n    \n    return System.findUserByID($record.values.OwnerId).then(user
+      => {\n      \n      // Notifies the owner that a new account was created
+      and assigned to him\n      Compose.sendRecordToMail(\n        user.email,\n
+      \       'Lead ' + $record.values.FirstName + ' ' + $record.values.LastName
+      + ' from ' + $record.values.Company + ' has been converted',\n        {\n
+      \          header: '<h1>The following lead has been converted:</h1>'\n        },\n
+      \       mySavedAccount\n      )\n    }).catch(err => {\n     // solve the
+      problem\n     console.error(err)\n    })\n\n  }).then(({ mySavedAccount
+      }) => {\n  \n    // Notify current user\n    ComposeUI.success(`The lead
+      has been converted.`)\n  \n    \n  }).then(({ mySavedAccount }) => {\n  \n
+      \   // Go to the record\n    ComposeUI.gotoRecordEditor(mySavedAccount)\n
+      \   \n  }).catch(err => {\n   // solve the problem\n   console.error(err)\n
+      \ })\n\n}).catch(err => {\n // solve the problem\n console.error(err)\n})"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  DONE_missing_ComposeUI_-_Lead_Convert_lead_to_accountopp:
+    source: "if ($record.values.Status === 'Converted') {\n  // Lead already converted.
+      Inform user and exit\n  ComposeUI.warning('This lead is already converted.')\n
+      \ return true\n}\n\n// create new record of type/module Account and copy
+      all values\nreturn Compose.makeRecord({\n  'BillingStreet' : $record.values.Street,\n
+      \ 'BillingCity' : $record.values.City,\n  'BillingState' : $record.values.State,\n
+      \ 'BillingPostalCode' : $record.values.PostalCode,\n  'BillingCountry' :
+      $record.values.Country,\n  'AnnualRevenue' : $record.values.AnnualRevenue,\n
+      \ 'AccountName' : $record.values.Company,\n  'Description' : $record.values.Description,\n
+      \ 'Fax' : $record.values.Fax,\n  'Industry' : $record.values.Industry,\n
+      \ 'OwnerId' : $record.values.OwnerId,\n  'AccountSource' : $record.values.LeadSource,\n
+      \ 'Phone' : $record.values.Phone,\n  'NumberOfEmployees' : $record.values.NumberOfEmployees,\n
+      \ 'Rating' : $record.values.Rating,\n  'Website' : $record.values.Website,\n
+      \ 'Twitter' : $record.values.Twitter,\n  'Facebook' : $record.values.Facebook,\n
+      \ 'LinkedIn' : $record.values.LinkedIn\n}, 'Account').then(myAccount =>
+      {\n  \n  return Compose.saveRecord(myAccount)\n  \n}).then(mySavedAccount
+      => {\n\n  // Create the related contact\n  return Compose.makeRecord({\n
+      \   'MailingStreet' : $record.values.Street,\n    'MailingCity' : $record.values.City,\n
+      \   'MailingState' : $record.values.State,\n    'MailingPostalCode' : $record.values.PostalCode,\n
+      \   'MailingCountry' : $record.values.Country,\n    'Description' : $record.values.Description,\n
+      \   'DoNotCall' : $record.values.DoNotCall,\n    'Email' : $record.values.Email,\n
+      \   'HasOptedOutOfEmail' : $record.values.HasOptedOutOfEmail,\n    'Fax'
+      : $record.values.Fax,\n    'HasOptedOutOfFax' : $record.values.HasOptedOutOfFax,\n
+      \   'OwnerId' : $record.values.OwnerId,\n    'LeadSource' : $record.values.LeadSource,\n
+      \   'Website' : $record.values.Website,\n    'Twitter' : $record.values.Twitter,\n
+      \   'Facebook' : $record.values.Facebook,\n    'LinkedIn' : $record.values.LinkedIn,\n
+      \   'Salutation' : $record.values.Salutation,\n    'FirstName' : $record.values.FirstName,\n
+      \   'LastName' : $record.values.LastName,\n    'MobilePhone' : $record.values.MobilePhone,\n
+      \   'Phone' : $record.values.Phone,\n    'Title' : $record.values.Title,\n
+      \   'IsPrimary' : '1',\n    'AccountId' : mySavedAccount.recordID\n  },
+      'Contact').then(mySavedContact => {\n    \n    return Compose.saveRecord(mySavedContact).then(mySavedContact
+      => {\n      \n      // First get the default values\n      //Get the default
+      settings\n      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings
+      => {\n        \n        let opportunityCloseDays = defaultSettings.values.OpportunityCloseDateDays\n
+      \       let opportunityProbability = defaultSettings.values.OpportunityProbability\n
+      \       let opportunityForecaseCategory = defaultSettings.values.OpportunityForecaseCategory\n
+      \       let opportunityStagename = defaultSettings.values.OpportunityStagename\n
+      \       \n        //Calculate the expiration date\n        let m = new Date()\n
+      \       m.setDate(m.getDate() + parseInt(opportunityCloseDays,10))\n        let
+      closeDate = m.getUTCFullYear() +\"/\"+ (m.getUTCMonth()+1) +\"/\"+ m.getUTCDate()
+      + \" \" + m.getUTCHours() + \":\" + m.getUTCMinutes() + \":\" + m.getUTCSeconds()\n
+      \ \n        // Create the related opportunity\n        return Compose.makeRecord({\n
+      \         'Description' : $record.values.Description,\n          'OwnerId'
+      : $record.values.OwnerId,\n          'LeadSource' : $record.values.LeadSource,\n
+      \         'Name' : '(unnamed)',\n          'AccountId' : mySavedAccount.recordID,\n
+      \         'IsClosed' : 'No',\n          'IsWon' : 'No',\n          'CloseDate'
+      : closeDate,\n          'Probability' : opportunityProbability,\n          'ForecastCategory'
+      : opportunityForecaseCategory,\n          'StageName' : opportunityStagename\n
+      \       }, 'Opportunity').then(myOpportunity => {\n           return Compose.saveRecord(myOpportunity)\n
+      \          \n        }).then(mySavedOpportunity => {\n        \n          //Create
+      a new contact linked to the opportunity\n          return Compose.makeRecord({\n
+      \           'ContactId' : mySavedContact.recordID,\n            'OpportunityId'
+      : mySavedOpportunity.recordID,\n            'IsPrimary' : '1'\n          },
+      'OpportunityContactRole').then(myOpportunityContactRole => {\n             return
+      Compose.saveRecord(myOpportunityContactRole)\n             \n          }).catch(err
+      => {\n           // solve the problem\n           console.error(err)\n          })\n
+      \          \n        }).catch(err => {\n         // solve the problem\n
+      \        console.error(err)\n        })\n        \n      }).catch(err =>
+      {\n       // solve the problem\n       console.error(err)\n      })\n  \n
+      \   }).catch(err => {\n     // solve the problem\n     console.error(err)\n
+      \   })\n  \n  \n  }).then(updatedAccount => {\n    \n    //Update the lead
+      record\n    $record.values.Status = 'Converted'\n    $record.values.IsConverted
+      = 'Yes'\n    $record.values.ConvertedAccountId = mySavedAccount.recordID\n
+      \   $record.values.ConvertedContactId = mySavedAccount.recordID\n    $record.values.ConvertedDate
+      = mySavedAccount.createdAt\n  \n    return Compose.saveRecord($record)\n
+      \   \n  }).then(leadUser => {\n    \n    return System.findUserByID($record.values.OwnerId).then(user
+      => {\n      \n      // Notifies the owner that a new account was created
+      and assigned to him\n      Compose.sendRecordToMail(\n        user.email,\n
+      \       'Lead ' + $record.values.FirstName + ' ' + $record.values.LastName
+      + ' from ' + $record.values.Company + ' has been converted',\n        {\n
+      \          header: '<h1>The following lead has been converted:</h1>'\n        },\n
+      \       mySavedAccount\n      )\n    }).catch(err => {\n     // solve the
+      problem\n     console.error(err)\n    })\n\n  }).then(({ mySavedAccount
+      }) => {\n  \n    // Notify current user\n    ComposeUI.success(`The lead
+      has been converted.`)\n  \n    \n  }).then(({ mySavedAccount }) => {\n  \n
+      \   // Go to the record\n    ComposeUI.gotoRecordEditor(mySavedAccount)\n
+      \   \n  }).catch(err => {\n   // solve the problem\n   console.error(err)\n
+      \ })\n\n}).catch(err => {\n // solve the problem\n console.error(err)\n})"
+    async: false
+    runInUA: false
+    critical: true
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  EmailMessage_Load_selected_template:
+    source: |-
+      // Crust automation triggers will help you manage your CRM records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+      // we will assign current record to variable lead just for readability
+      let email = record
+
+      // Check if the email has been sent already
+      if (email.values.Status === 'Sent') {
+        // Email has been sent already. Exit
+        crust.notify.ui.alert.success('You cannot apply a template to an email that has already been sent.')
+        return true
+      }
+
+      //Check if there is a template selected
+      if (typeof email.values.EmailTemplateId == "undefined" || email.values.EmailTemplateId === '') {
+        //Inform that a template needs to be selected
+        crust.notify.ui.alert.error('Please select a template first.')
+        return true
+      }
+
+      //Get the template
+      const EmailTemplateModule = crust.api.module.find('EmailTemplate')
+      let template = await crust.api.record.find(EmailTemplateModule, email.values.EmailTemplateId)
+
+      //Set the subject
+      if (typeof template.values.Subject != "undefined") {
+         email.values.Subject = template.values.Subject
+      }
+
+      //Set the body
+      if (typeof template.values.Body != "undefined") {
+         email.values.HtmlBody = template.values.Body
+      }
+
+      //Get the details from the template
+      crust.notify.ui.alert.success(`Loading template "${template.values.Name}"`)
+
+      //Save
+      let new_email = await crust.api.record.save(email)
+
+      //Redirect to see the applied template
+      crust.helpers.record.page.edit(new_email)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  EmailMessage_Send_email:
+    source: "// Crust automation triggers will help you manage your CRM records\n//
+      It is a simple JavaScript engine that runs custom code that triggers manually\n//
+      or automatically before/after certain record events (create, update, delete)\n//
+      we will assign current record to variable lead just for readability\nlet
+      email = record\n\n// Check if the email has been sent already\nif (email.recordID
+      == 0) {\n  // Email has been sent already. Exit\n  crust.notify.ui.alert.success('Please
+      save the email first before sending.')\n  return true\n}\n\n// Check if
+      the email has been sent already\nif (email.values.Status === 'Sent') {\n
+      \ // Email has been sent already. Exit\n  crust.notify.ui.alert.success('This
+      message has already been sent.')\n  return true\n}\n\n// Get the from address\nlet
+      from = ''\nif (email.values.FromUser !== null && email.values.FromUser !==
+      \"\") {\n   let user = await crust.api.user.find(email.values.FromUser)\n
+      \  from = user.email\n}\n\n// Get the to addresses in a array.\nlet to =
+      []\nlet cc = []\nlet bcc = []\n\n// Get to to address from the lead field.\nif
+      (typeof email.values.LeadId != \"undefined\") {\n   if (email.values.LeadId
+      !== null && email.values.LeadId !== \"\") {\n      const LeadModule = crust.api.module.find('Lead')\n
+      \     let lead = await crust.api.record.find(LeadModule, email.values.LeadId)\n
+      \     if (typeof lead.values.Email != \"undefined\") {\n         to.push(lead.values.Email)\n
+      \     }\n   }\n}\n\n// Get to to address from the contact field.\nif (typeof
+      email.values.ContactId != \"undefined\") {\n   if (email.values.ContactId
+      !== null && email.values.ContactId !== \"\") {\n      const ContactModule
+      = crust.api.module.find('Contact')\n      let contact = await crust.api.record.find(ContactModule,
+      email.values.ContactId)\n      if (typeof contact.values.Email != \"undefined\")
+      {\n         to.push(contact.values.Email)\n      }\n   }\n}\n\n// Get the
+      to from the manual input, and add to the lead and contact to values\nif
+      (typeof email.values.ToAddress != \"undefined\") {\n   let to_string = email.values.ToAddress\n
+      \  let to_clean_string = to_string.replace(/ /g,'')\n   let to_array = to_clean_string.split(',');\n
+      \  to = to.concat(to_array);\n}\n\n// Check if there is any \"to\" address.
+      If not, exit\nif (to.length < 1) {\n   crust.notify.ui.alert.success('Please
+      select a mailable lead or contact, or fill in an email address in the To
+      field.')\n   return true\n}\n\n// Get the cc\nif (typeof email.values.CcAddress
+      != \"undefined\") {\n   let cc_string = email.values.CcAddress\n   let cc_clean_string
+      = cc_string.replace(/ /g,'')\n   cc = cc_clean_string.split(',');\n}\n\n//
+      Get the bcc\nif (typeof email.values.BccAddress != \"undefined\") {\n   let
+      bcc_string = email.values.BccAddress\n   let bcc_clean_string = bcc_string.replace(/
+      /g,'')\n   bcc = bcc_clean_string.split(',');\n}\n\n// Get email body\nlet
+      html = \"\"\nlet text = \"\"\n\nif (typeof email.values.HtmlBody != \"undefined\")
+      {\n  html = email.values.HtmlBody\n  // Get Text version\n  text = email.values.HtmlBody.replace(/<(?:.|\\n)*?>/gm,
+      '');\n}\n\n// Send the email\ncrust.notify.send.email({\n  // Set the from
+      address\n  from: from,\n  \n  // Set the to\n  to: to,\n\n  // Send the
+      cc\n  cc: cc,\n  \n  // Send the BCC\n  bcc: bcc,\n\n  subject: email.values.Subject,\n
+      \ html: html,\n  text: text,\n})\n\n// Notify current user \ncrust.notify.ui.alert.success('The
+      email has been sent.')\n\n// Set the status\nemail.values.Status = 'Sent'\n\n//
+      Sent the send by\nemail.values.FromUser = email.createdBy\n\n// Set the
+      send date to now\nvar m = new Date()\nvar dateString = m.getUTCFullYear()
+      +\"/\"+ (m.getUTCMonth()+1) +\"/\"+ m.getUTCDate() + \" \" + m.getUTCHours()
+      + \":\" + m.getUTCMinutes() + \":\" + m.getUTCSeconds()\nemail.values.MessageDate
+      = dateString\n\n// Save the record\nawait crust.api.record.save(email)\n\n//
+      Reload current page\ncrust.helpers.record.page.reload()"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  Receipt_-_Set_receipt_label:
+    source: "// Set the record label string\nlet recordLabel = ''\n\n// Get the
+      date\nlet date = record.values.date\nif (typeof date == \"undefined\") {\n
+      \ date = ''\n} else {\n  recordLabel = date + ' - '\n}\n\n// Get the vendor
+      name\nlet vendor = record.values.vendor\nif (typeof vendor == \"undefined\")
+      {\n  vendor = ''\n} else {\n  const VendorModule = crust.api.module.find('Vendor')\n
+      \ const VendorModuleData = await crust.api.record.find(VendorModule, vendor)\n
+      \ vendor = VendorModuleData.values.vendor\n  \n  recordLabel = recordLabel
+      + vendor\n}\n\n// Get the description\nlet description = record.values.description\nif
+      (typeof description == \"undefined\") {\n  description = ''\n} else {\n
+      \ recordLabel = recordLabel + ', ' + description\n}\n\n// Get the amount\nlet
+      amount = record.values.amount\nif (typeof amount == \"undefined\") {\n  amount
+      = ''\n} else {\n  recordLabel = recordLabel + ' ($' + amount + ')'\n}\n\n//
+      Set the label\nrecord.values.receipt_label = recordLabel\n\n// Save the
+      record\nawait crust.api.record.save(record)"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+  TO_UPDATE_-_Contract_Send_contract_to_custom_email:
+    source: |-
+      // Crust automation triggers will help you manage your CRM records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  TO_UPDATE_-_Contract_Send_contract_to_key_contact_of_account:
+    source: |-
+      // Crust automation triggers will help you manage your CRM records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  TO_UPDATE_-_Quote_Send_quote_to_custom_email:
+    source: "// Crust automation triggers will help you manage your CRM records\n//
+      It is a simple JavaScript engine that runs custom code that triggers manually\n//
+      or automatically before/after certain record events (create, update, delete)\n//
+      we will assign current record to variable lead just for readability\nlet
+      quote = record\n\n//Get the default settings\nconst DefaultSettingsModule
+      = crust.api.module.find('DefaultSettings')\nconst defaultSettings = await
+      crust.api.record.find(DefaultSettingsModule, '79324865164738562')\n\n//
+      Get the from address\nlet from = defaultSettings.values.QuoteSendEmailFrom\n\n//
+      Check if there is an email\nif (typeof from === \"undefined\") {\n  crust.notify.ui.alert.success('There
+      is no default email set to send the Quote from. Please insert an email in
+      the default settings module.')\n}\n\n// Get the to address\nlet to = prompt(\"Please
+      enter an email to send this quote to:\")\nif (to === null || to === \"\")
+      {\n  crust.notify.ui.alert.error('Please enter an email to send this quote
+      to.')\n  return true\n}\n\n// Get email body\nlet html = \"Details of Quote:
+      \" + quote.values.QuoteNumber + \"<br>\"\nhtml = html + \"<br>\"\nhtml =
+      html + \"<table border='1'>\"\nhtml = html + \"<tr>\"\nhtml = html + \"<td>\"\nhtml
+      = html + \"<strong>Quote Information</strong><br>\"\nhtml = html + \"<br>\"\nhtml
+      = html + \"<strong>Quote Number:</strong> \" + quote.values.QuoteNumber
+      + \"<br>\"\nhtml = html + \"<strong>Quote Name:</strong> \" + quote.values.Name
+      + \"<br>\"\nhtml = html + \"<strong>Expiration Date:</strong> \" + quote.values.ExpirationDate
+      + \"<strong><br>\"\nhtml = html + \"<strong>Description:</strong> \" + quote.values.Description\nhtml
+      = html + \"</td>\"\nhtml = html + \"<td>\"\nhtml = html + \"<strong>Primary
+      contact data</strong><br>\"\nhtml = html + \"<br>\"\nhtml = html + \"<strong>Contact
+      Name:</strong> \" + quote.values.ContactId + \"<br>\"\nhtml = html + \"<strong>Email:</strong>
+      \" + quote.values.Email + \"<br>\"\nhtml = html + \"<strong>Phone:</strong>
+      \" + quote.values.Phone + \"<br>\"\nhtml = html + \"<strong>Fax:</strong>
+      \" + quote.values.Fax\nhtml = html + \"</td>\"\nhtml = html + \"<td>\"\nhtml
+      = html + \"<strong>Totals</strong><br>\"\nhtml = html + \"<br>\"\nhtml =
+      html + \"<strong>Subtotal:</strong> \" + quote.values.Subtotal + \"<br>\"\nhtml
+      = html + \"<strong>Additional Discount:</strong> \" + quote.values.Discount
+      + \"<br>\"\nhtml = html + \"<strong>Shipping and Handling:</strong> \" +
+      quote.values.ShippingHandling + \"<br>\"\nhtml = html + \"<strong>Total
+      Price:</strong> \" + quote.values.TotalPrice + \"<br>\"\nhtml = html + \"<strong>Tax:</strong>
+      \" + quote.values.Tax + \"<br>\"\nhtml = html + \"<strong>Grand Total:</strong>
+      \" + quote.values.GrandTotal\nhtml = html + \"</td>\"\nhtml = html + \"</tr>\"\nhtml
+      = html + \"<tr>\"\nhtml = html + \"<td colspan='3'>\"\nhtml = html + \"<strong>Products</strong><br>\"\nhtml
+      = html + \"<br>\"\nhtml = html + \"Productname:</strong> \" + quote.values.Status
+      + \"<br>\"\nhtml = html + \"Price:</strong> \" + quote.values.Status + \"<br>\"\nhtml
+      = html + \"Quantity:</strong> \" + quote.values.Status + \"<br>\"\nhtml
+      = html + \"Subtotal:</strong> \" + quote.values.Status + \"<br>\"\nhtml
+      = html + \"Discount:</strong> \" + quote.values.Status + \"<br>\"\nhtml
+      = html + \"Total Price:</strong> \" + quote.values.Status + \"<br>\"\nhtml
+      = html + \"-------------------------<br>\"\nhtml = html + \"Productname:</strong>
+      \" + quote.values.Status + \"<br>\"\nhtml = html + \"Price:</strong> \"
+      + quote.values.Status + \"<br>\"\nhtml = html + \"Quantity:</strong> \"
+      + quote.values.Status + \"<br>\"\nhtml = html + \"Subtotal:</strong> \"
+      + quote.values.Status + \"<br>\"\nhtml = html + \"Discount:</strong> \"
+      + quote.values.Status + \"<br>\"\nhtml = html + \"Total Price:</strong>
+      \" + quote.values.Status + \"<br>\"\nhtml = html + \"-------------------------<br>\"\nhtml
+      = html + \"</td>\"\nhtml = html + \"</tr>\"\nhtml = html + \"<tr>\"\nhtml
+      = html + \"<td>\"\nhtml = html + \"<strong>Bill To</strong><br>\"\nhtml
+      = html + \"<br>\"\nhtml = html + \"<strong>Bill to Name:</strong> \" + quote.values.BillingName
+      + \"<br>\"\nhtml = html + \"<strong>Bill to Street:</strong> \" + quote.values.BillingStreet
+      + \"<br>\"\nhtml = html + \"<strong>Bill to City:</strong> \" + quote.values.BillingCity
+      + \"<br>\"\nhtml = html + \"<strong>Bill to State:</strong> \" + quote.values.BillingState
+      + \"<strong><br>\"\nhtml = html + \"<strong>Bill to Postal Code:</strong>
+      \" + quote.values.BillingPostalCode + \"<br>\"\nhtml = html + \"<strong>Bill
+      to Country:</strong> \" + quote.values.BillingCountry\nhtml = html + \"</td>\"\nhtml
+      = html + \"<td>\"\nhtml = html + \"<strong>Quote To</strong><br>\"\nhtml
+      = html + \"<br>\"\nhtml = html + \"<strong>Quote to Name:</strong> \" +
+      quote.values.QuoteToName + \"<br>\"\nhtml = html + \"<strong>Quote to Street:</strong>
+      \" + quote.values.QuoteToStreet + \"<br>\"\nhtml = html + \"<strong>Quote
+      to City:</strong> \" + quote.values.QuoteToCity + \"<br>\"\nhtml = html
+      + \"<strong>Quote to State:</strong> \" + quote.values.QuoteToState + \"<strong><br>\"\nhtml
+      = html + \"<strong>Quote to Postal Code:</strong> \" + quote.values.QuoteToPostalCode
+      + \"<br>\"\nhtml = html + \"<strong>Quote to Country:</strong> \" + quote.values.QuoteToCountry\nhtml
+      = html + \"</td>\"\nhtml = html + \"<td>\"\nhtml = html + \"<strong>Ship
+      To</strong><br>\"\nhtml = html + \"<br>\"\nhtml = html + \"<strong>Ship
+      to Name:</strong> \" + quote.values.ShippingName + \"<br>\"\nhtml = html
+      + \"<strong>Ship to Street:</strong> \" + quote.values.ShippingStreet +
+      \"<br>\"\nhtml = html + \"<strong>Ship to City:</strong> \" + quote.values.ShippingCity
+      + \"<br>\"\nhtml = html + \"<strong>Ship to State:</strong> \" + quote.values.ShippingState
+      + \"<strong><br>\"\nhtml = html + \"<strong>Ship to Postal Code:</strong>
+      \" + quote.values.ShippingPostalCode + \"<br>\"\nhtml = html + \"<strong>Ship
+      to Country:</strong> \" + quote.values.ShippingCountry\nhtml = html + \"</td>\"\nhtml
+      = html + \"</tr>\"\nhtml = html + \"</table>\"\n\nlet text = html.replace(/<(?:.|\\n)*?>/gm,
+      '');\n\n// Send the email\ncrust.notify.send.email({\n  // Set the from
+      address\n  from: from,\n  \n  // Set the to\n  to: to,\n\n  subject: 'test
+      quote',\n  html: html,\n  text: text,\n})\n\n// Notify current user \ncrust.notify.ui.alert.success('The
+      email has been sent.')"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  TO_UPDATE_-_Quote_Send_quote_to_key_contact_of_account:
+    source: |-
+      // Crust automation triggers will help you manage your CRM records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  TO_UPDATE_-_Quote_Submit_quote_for_approval:
+    source: "// Crust automation triggers will help you manage your CRM records\n//
+      It is a simple JavaScript engine that runs custom code that triggers manually\n//
+      or automatically before/after certain record events (create, update, delete)\n//
+      we will assign current record to variable lead just for readability\n//Check
+      if it can be reviewed\nif (record.values.Status !== 'Draft' && record.values.Status
+      !== 'Needs Review') {\n  // Lead already assigned, nothing to do here\n
+      \ crust.notify.ui.alert.success('A quote needs to have the status Draft
+      or Needs Review in order to be sent for approval')\n  return true\n}\n\nrecord.values.Status
+      = 'In Review'\n\n// Saves the account\nlet quote = await crust.api.record.save(record)\n\n//
+      Notifies the owner that a new account was created and assigned to him\ncrust.notify.send.email({\n
+      \ // Accepts userID or email\n  to: 'niall.mccarthy@crust.tech',\n  \n  subject:
+      `Quote \"${record.values.Name}\" needs approval`,\n  html: `The following
+      quote needs approval: <br><br><a href=\"https://latest.crust.tech/crm/pages/69625756459728913/record/${quote.recordID}/edit\">${record.values.Name}<a>`,\n})\n\n//
+      Notify current user \ncrust.notify.ui.alert.success('The quote has been
+      sent to niall.mccarthy@crust.tech for approval')\n\n// Reload current page\ncrust.helpers.record.page.reload()"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  Todo_-_Campaign_Update_totals:
+    source: |-
+      // Crust automation triggers will help you manage your CRM records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  Vendor_-_Set_vendor_label:
+    source: |-
+      // Set the record label string
+      let recordLabel = ''
+
+      // Get the date
+      let vendor = record.values.vendor
+      if (typeof vendor == "undefined") {
+        vendor = ''
+      } else {
+        recordLabel = vendor
+      }
+
+      // Get the description
+      let description = record.values.description
+      if (typeof description == "undefined") {
+        description = ''
+      } else {
+        recordLabel = recordLabel + ' (' + description + ')'
+      }
+
+      // Set the label
+      record.values.vendor_label = recordLabel
+
+      // Save the record
+      await crust.api.record.save(record)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+  WIP_-_Opportunity_Generate_new_quote:
+    source: "// Create a new quote record for the opportunity\nreturn Compose.makeRecord({\n
+      \ 'ShippingHandling': 0,\n  'Status': 'Draft',\n  'Discount': 0,\n  'Tax':
+      0,\n  'OpportunityId': $record.recordID,\n  'GrandTotal': $record.values.Amount,\n
+      \ 'PricebookId': $record.values.PricebookId,\n  'Name': $record.values.Name,\n
+      \ 'Subtotal': $record.values.Amount,\n  'TotalPrice': $record.values.Amount\n},
+      'Quote')\n\n  .then(myQuote => {\n\n    return Compose.saveRecord(myQuote)\n
+      \ }).then(mySavedQuote => {\n\n    // Get the primary contact for the quote\n
+      \   return Compose.findRecords(`OpportunityId = ${$record.recordID}`, 'OpportunityContactRole')\n\n
+      \     .then(({ set, filter }) => {\n\n        let primary_contact\n\n        if
+      (set.length === 1) {\n\n          // Get the contact\n          primary_contact
+      = r\n\n        } else {\n\n          // Loop through the contacts of the
+      account, to save the primary contact\n          set.forEach(r => {\n\n\n\n
+      \           // Check if it's the primary contact\n            let contactIsPrimary
+      = r.values.IsPrimary\n            if (contactIsPrimary === '1') {\n\n              //
+      Add the contact\n              primary_contact = r\n            }\n          })\n
+      \       }\n      }).then(primary_contact => {\n\n        // If we have the
+      primary contact, continue to add it to the quote. Else, skip this block\n
+      \       if (primary_contact) {\n\n          // Get the contact data\n          return
+      Compose.findRecordByID(primary_contact, 'Contact').then(contact => {\n\n
+      \           // Map the contact fields to the quote\n            $record.values.ContactId
+      = contact.recordID\n            $record.values.Email = contact.values.Email\n
+      \           $record.values.Phone = contact.values.Phone\n            $record.values.Fax
+      = contact.values.Fax\n\n          }).catch(err => {\n            // solve
+      the problem\n            console.error(err)\n          })\n        }\n      }).catch(err
+      => {\n        // solve the problem\n        console.error(err)\n      })\n
+      \ }).catch(err => {\n    // solve the problem\n    console.error(err)\n
+      \ })\n\n\n/*\n\n\n// Get the opportunity\nconst opportunity = record\n\n//
+      Create a new quote record for the opportunity\nconst quote = crust.helpers.record.new('Quote',
+      opportunity)\n\n// Map the fields\nquote.values.ShippingHandling = 0\nquote.values.Status
+      = 'Draft'\nquote.values.Discount = 0\nquote.values.Tax = 0\nquote.values.OpportunityId
+      = opportunity.recordID\nquote.values.GrandTotal = opportunity.values.Amount\nquote.values.PricebookId
+      = opportunity.values.PricebookId\nquote.values.Name = opportunity.values.Name\nquote.values.Subtotal
+      = opportunity.values.Amount\nquote.values.TotalPrice = opportunity.values.Amount\n\n//
+      Get the primary contact for the quote\nconst OpportunityContactRoleModule
+      = crust.api.module.find('OpportunityContactRole')\nconst OpportunityContactRoleModuleData
+      = await crust.api.record.find(OpportunityContactRoleModule, `OpportunityId
+      = ${opportunity.recordID}`)\nconst contactroles = OpportunityContactRoleModuleData.records\n\n//
+      If there is only 1 contact, this is the primary contact for the quote\nlet
+      primary_contact\nif (contactroles.length === 1) {\n  \n  //Get the contact\n
+      \ primary_contact = contactroles[0]\n  \n} else {\n  \n  //Loop through
+      the contact\n  for (let i = 0; i < contactroles.length; i+=1) {\n    \n
+      \   //Get the contact\n    let contactrole = contactroles[i]\n    \n    //Check
+      if it's the primary contact\n    if (contactrole.values.IsPrimary === '1')
+      {\n      primary_contact = contactrole\n    }\n  }\n}\n\n// Check if we've
+      found a primary contact\nif (typeof primary_contact !== \"undefined\") {\n
+      \ \n  // Get the contact\n  const ContactModule = crust.api.module.find('Contact')\n
+      \ const contact = await crust.api.record.find(ContactModule, primary_contact.values.ContactId)\n
+      \ \n  // Map the contact fields to the quote\n  quote.values.ContactId =
+      contact.recordID\n  quote.values.Email = contact.values.Email\n  quote.values.Phone
+      = contact.values.Phone\n  quote.values.Fax = contact.values.Fax\n}\n\n//
+      Check if there is a related account, to map the fields of the account\nconst
+      accountId = opportunity.values.AccountId\nif (typeof accountId == \"undefined\"
+      || accountId === '') {\n  \n  // Exit when there is no account related to
+      the opportunity.\n  crust.notify.ui.alert.success('Please link the opportunity
+      to an account before generating a quote')\n  \n} else {\n\n  // Get the
+      related account\n  const AccountModule = crust.api.module.find('Account')\n
+      \ const account = await crust.api.record.find(AccountModule, accountId)\n
+      \ \n  // Map the account fields\n  quote.values.AccountId = account.recordID\n
+      \ quote.values.BillingStreet = account.values.BillingStreet\n  quote.values.BillingCity
+      = account.values.BillingCity\n  quote.values.BillingState = account.values.BillingState\n
+      \ quote.values.BillingPostalCode = account.values.BillingPostalCode\n  quote.values.BillingCountry
+      = account.values.BillingCountry\n  quote.values.BillingName = account.values.AccountName\n
+      \ quote.values.QuoteToStreet = account.values.BillingStreet\n  quote.values.QuoteToCity
+      = account.values.BillingCity\n  quote.values.QuoteToState = account.values.BillingState\n
+      \ quote.values.QuoteToPostalCode = account.values.BillingPostalCode\n  quote.values.QuoteToCountry
+      = account.values.BillingCountry\n  quote.values.QuoteToName = account.values.AccountName\n
+      \ quote.values.ShippingStreet = account.values.BillingStreet\n  quote.values.ShippingCity
+      = account.values.BillingCity\n  quote.values.ShippingState = account.values.BillingState\n
+      \ quote.values.ShippingPostalCode = account.values.BillingPostalCode\n  quote.values.ShippingCountry
+      = account.values.BillingCountry\n  quote.values.ShippingName = account.values.AccountName\n}\n\n//
+      Get the default settings\nconst DefaultSettingsModule = crust.api.module.find('DefaultSettings')\nconst
+      defaultSettings = await crust.api.record.find(DefaultSettingsModule, '96976273003249666')\n\n//
+      Get the expiration date\nlet quoteExpirationDays = defaultSettings.values.QuoteExpirationDays\n\n//
+      Calculate the expiration date\nlet m = new Date()\nm.setDate(m.getDate()
+      + parseInt(quoteExpirationDays,10))\nlet expirationDate = m.getUTCFullYear()
+      +\"/\"+ (m.getUTCMonth()+1) +\"/\"+ m.getUTCDate() + \" \" + m.getUTCHours()
+      + \":\" + m.getUTCMinutes() + \":\" + m.getUTCSeconds()\n\n// Map the defa\nquote.values.ExpirationDate
+      = expirationDate\n\n// Map the quote number\nlet nextQuoteNumber = defaultSettings.values.QuoteNextNumber\nif
+      (typeof nextQuoteNumber == \"undefined\" || nextQuoteNumber === '' || isNaN(nextQuoteNumber))
+      {\n  nextQuoteNumber = 0\n}\nquote.values.QuoteNumber = nextQuoteNumber\nlet
+      nextQuoteNumberUpdated = parseInt(nextQuoteNumber,10) + 1\n\n// Update the
+      config\ndefaultSettings.values.QuoteNextNumber = nextQuoteNumberUpdated\nawait
+      crust.api.record.save(defaultSettings)\n\n// Save the new quote\nlet new_quote
+      = await crust.api.record.save(quote)\n\n// Get the list of products from
+      the opportunity to the quote\nconst OpportunityLineItemModule = crust.api.module.find('OpportunityLineItem')\nconst
+      OpportunityLineItemModuleData = await crust.api.record.find(OpportunityLineItemModule,
+      `OpportunityId = ${opportunity.recordID}`)\nconst lineitems = OpportunityLineItemModuleData.records\n\n//
+      Loop through the lineitems related to the opportunity\nfor (let i = 0; i
+      < lineitems.length; i+=1) {\n  \n  // Get the contact\n  let lineitem =
+      lineitems[i]\n  \n  // Create a new contact linked to the opportunity\n
+      \ let quoteLineItem = await crust.helpers.record.new('QuoteLineItem', lineitem)\n
+      \ \n  // Set the values of the quote lineitem\n  quoteLineItem.values.Discount
+      = lineitem.values.Discount\n  quoteLineItem.values.Description = lineitem.values.Description\n
+      \ quoteLineItem.values.ListPrice = lineitem.values.ListPrice\n  quoteLineItem.values.PricebookEntryId
+      = lineitem.values.PricebookEntryId\n  quoteLineItem.values.ProductId = lineitem.values.ProductId\n
+      \ quoteLineItem.values.ProductCode = lineitem.values.ProductCode\n  quoteLineItem.values.Quantity
+      = lineitem.values.Quantity\n  quoteLineItem.values.UnitPrice = lineitem.values.UnitPrice\n
+      \ quoteLineItem.values.Subtotal = lineitem.values.Subtotal\n  quoteLineItem.values.TotalPrice
+      = lineitem.values.TotalPrice\n  quoteLineItem.values.QuoteId = new_quote.recordID\n
+      \ \n  // Save\n  await crust.api.record.save(quoteLineItem)\n}\n\n// Redirect
+      to the new quote\ncrust.helpers.record.page.open(new_quote)\n\n// Notify
+      current user \ncrust.notify.ui.alert.success(`The new quote \"${nextQuoteNumber}\"
+      has been created.`)\n\n*/"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record
+  WIP_-_Quote_Update_total_price:
+    source: |-
+      // Crust automation triggers will help you manage your CRM records
+      // It is a simple JavaScript engine that runs custom code that triggers manually
+      // or automatically before/after certain record events (create, update, delete)
+      const quote = record
+
+      // Get the subtotal
+      let subtotal = parseFloat(quote.values.Subtotal)
+
+      // Apply additional quote discount
+      let discount = quote.values.Discount
+      if (typeof discount == "undefined" || discount === '' || isNaN(discount)) {
+        discount = 0
+      }
+      let totalPrice = subtotal - parseFloat(discount)
+
+      // Calculate if it's not below 0
+      if (totalPrice < 0) {
+        totalPrice = 0
+      }
+
+      // Apply shipping
+      let shippingHandling = quote.values.ShippingHandling
+      if (typeof shippingHandling == "undefined" || shippingHandling === '' || isNaN(shippingHandling)) {
+        shippingHandling = 0
+      }
+      totalPrice = totalPrice + parseFloat(shippingHandling)
+
+      // Add totalPrice to the record
+      quote.values.TotalPrice = totalPrice
+
+      // Apply taxes
+      let tax = quote.values.Tax
+      if (typeof shippingHandling == "undefined" || shippingHandling === '' || isNaN(shippingHandling)) {
+        // No tax, so don't do anything
+        quote.values.GrandTotal = totalPrice
+      } else {
+        if (tax > 0) {
+          // Apply tax
+          let taxpercent = parseFloat(tax / 100);
+          quote.values.GrandTotal = totalPrice * (1 + taxpercent)
+        }
+      }
+
+      // Save the quote
+      await crust.api.record.save(quote)
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: afterUpdate
+      module: Quote
+      resource: compose:record
+  WiP_error_-_Opportunity_Apply_price_book:
+    source: "// Get the current price book\nlet pricebookId\nlet pricebookName\n\n//
+      Check if there is a pricebook\nif ($record.values.PricebookId) {\n  \n  //If
+      there is no price book selected, get the default price book.\n  return Compose.findRecords('IsActive
+      = 1', 'Pricebook') \n\n  .then(({ set, filter }) => {\n\n    if (set.length
+      === 0) {\n\n      // return that there are no Price books in the CRM\n      ComposeUI.warning(`There
+      are no active price books configured in the CRM. Please insert an active
+      price book in the Price book module.`)\n\n    } else  {\n\n      // Loop
+      through the price books, to find the standard one\n      set.forEach(r =>
+      {\n\n        console.log(r)\n      })\n\n\n    }\n\n  \n  }).catch(err =>
+      {\n    // solve the problem\n    console.error(err)\n  })\n} else {\n  ComposeUI.warning(`Please
+      select a Price book for this opportunity first.`)\n}\n\n\n\n/*\n\n  const
+      PricebookModule = crust.api.module.find('Pricebook')\n  \n  //Find all active
+      price books\n  const pricebooks = await crust.api.record.find(PricebookModule,
+      \"IsActive = 1\")\n  const pricebooksRecords = pricebooks.records\n\n  //Check
+      if there are any active price books. If not, exit.\n  if (pricebooksRecords.length
+      < 1) {\n    crust.notify.ui.alert.success('There are no price books configured
+      in the CRM. Please create a price book in the Price book module.')\n    return
+      true\n  } else {\n    \n    //Loop through the price books to find the standard
+      price book\n    for (let i = 0; i < pricebooksRecords.length; i+=1) {\n\n
+      \     //Check if the price book is the standard one\n      if (pricebooksRecords[i].values.IsStandard
+      === '1') {\n        \n        //Get the pricebook id\n        pricebookId
+      = pricebooksRecords[i].recordID\n        \n        //Save the pricebook
+      in the opportunity\n        record.values.PricebookId = pricebookId\n      }\n
+      \   }\n    \n    //Check if there was any standard price book\n    if (typeof
+      pricebookId == \"undefined\" || pricebookId === '') {\n       crust.notify.ui.alert.success('The
+      standard price book has not been configured in the CRM. Please enter the
+      Price book module and set the standard price book, or select a price book
+      from the select box in the opportunity.')\n    }\n  }\n} else {\n  pricebookId
+      = record.values.PricebookId\n}\n\n//Get the related modules\nconst OpportunityLineItemModule
+      = crust.api.module.find('OpportunityLineItem')\nconst ProductModule = crust.api.module.find('Product')\nconst
+      PricebookEntryModule = crust.api.module.find('PricebookEntry')\n\n//Run
+      through the products of the opportunity and apply the price book prices
+      to each of them\nconst OpportunityLineItemModuleData = await crust.api.record.find(OpportunityLineItemModule,
+      `OpportunityId = ${record.recordID}`)\nconst lineitems = OpportunityLineItemModuleData.records\n\n//Set
+      the total amount of the opportunity\nlet amount = 0\n\n//Loop through the
+      products\nfor (let i = 0; i < lineitems.length; i+=1) {\n  \n  //Get the
+      product\n  let lineitem = lineitems[i]\n  \n  //Get the productId\n  let
+      productId = lineitem.values.ProductId\n  \n  //Get the product\n  let product
+      = await crust.api.record.find(ProductModule, productId)\n  \n  //Set the
+      default values\n  let quantity = lineitem.values.Quantity\n  let discount
+      = lineitem.values.Discount\n  let listprice = 0\n  let unitprice = 0\n  let
+      subtotal = 0\n  let totalprice = 0\n\n  //Get the right price from the selected
+      price book\n  let pricebookEntries = await crust.api.record.find(PricebookEntryModule,
+      `PricebookId = ${pricebookId} AND ProductId = ${productId}`)\n\n  //Check
+      if there is a result\n  if (pricebookEntries.records.length > 0) {\n    //Get
+      the first value in the array (the result). Only one, because there can only
+      be one entry in a price book for a product\n    let pricebookEntry = pricebookEntries.records[0]\n
+      \   \n    //Get the unit price\n    listprice = pricebookEntry.values.UnitPrice\n
+      \ }\n  \n  //Update the values\n  lineitem.values.Name = product.values.Name\n
+      \ lineitem.values.ProductCode = product.values.ProductCode\n  lineitem.values.ListPrice
+      = listprice\n  \n  //Update unitprice only when the value is empty\n  unitprice
+      = lineitem.values.UnitPrice\n  if (typeof unitprice == \"undefined\" ||
+      unitprice === '' || isNaN(unitprice)) {\n    unitprice = listprice\n  }\n
+      \ \n  //Calculate the totals\n  if (typeof quantity == \"undefined\" ||
+      quantity === '' || isNaN(quantity)) {\n    quantity = 0\n  }\n  subtotal
+      = unitprice * quantity\n  \n  //Calculate the total\n  if (typeof discount
+      == \"undefined\" || discount === '' || isNaN(discount)) {\n    totalprice
+      = subtotal\n  } else {\n    totalprice = subtotal - discount\n  }\n  \n
+      \ lineitem.values.UnitPrice = unitprice\n  lineitem.values.Subtotal = subtotal\n
+      \ lineitem.values.TotalPrice = totalprice\n\n  //Add the total price to
+      the amount of the opportunity\n  amount = amount + totalprice\n\n  //Save
+      the lineitem\n  await crust.api.record.save(lineitem)\n}\n\n//Update the
+      amount in the opportunity\nrecord.values.Amount = amount\n\n//Save the opportunity\nawait
+      crust.api.record.save(record)\n\n//Refresh the page\ncrust.helpers.record.page.reload()\n\n//Let
+      the user know it finished\ncrust.notify.ui.alert.success('The opportunity
+      lineitems have been synced with the selected price book');\n\n*/"
+    async: false
+    runInUA: true
+    critical: false
+    enabled: true
+    timeout: 0
+    triggers:
+    - event: manual
+      resource: compose:record

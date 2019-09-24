@@ -1,0 +1,120 @@
+charts:
+  Leads_by_country:
+    name: Leads by country
+    config:
+      reports:
+      - metrics:
+        - backgroundColor: '#e5a83b'
+          beginAtZero: true
+          field: count
+          fixTooltips: true
+          label: Number of leads
+          type: bar
+        dimensions:
+        - conditions: {}
+          field: Country
+          modifier: (no grouping / buckets)
+        module: Lead
+  Leads_by_source:
+    name: Leads by source
+    config:
+      reports:
+      - metrics:
+        - backgroundColor: '#36d436'
+          beginAtZero: true
+          field: count
+          label: Number of leads
+          type: bar
+        dimensions:
+        - conditions: {}
+          field: LeadSource
+          modifier: (no grouping / buckets)
+        module: Lead
+  Leads_by_type:
+    name: Leads by type
+    config:
+      reports:
+      - metrics:
+        - backgroundColor: '#63da1a'
+          beginAtZero: true
+          field: count
+          label: Number of leads
+          type: bar
+        dimensions:
+        - conditions: {}
+          field: Status
+          modifier: (no grouping / buckets)
+        module: Lead
+  Leads_per_day:
+    name: Leads per day
+    config:
+      reports:
+      - metrics:
+        - aggregate: SUM
+          axisType: linear
+          backgroundColor: '#fc7507'
+          beginAtZero: true
+          field: count
+          fill: false
+          label: Leads per day
+          type: line
+        dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: DATE
+        module: Lead
+  Leads_per_day_-_line:
+    name: Leads per day - line
+    config:
+      reports:
+      - metrics:
+        - axisPosition: left
+          axisType: linear
+          backgroundColor: '#e6f12e'
+          beginAtZero: true
+          field: count
+          fill: false
+          label: Leads per day
+          type: line
+        dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: DATE
+        module: Lead
+  Opportunities_by_value:
+    name: Opportunities by value
+    config:
+      reports:
+      - metrics:
+        - aggregate: SUM
+          backgroundColor: '#5977ff'
+          beginAtZero: true
+          field: Amount
+          label: Total value
+          type: bar
+        dimensions:
+        - conditions: {}
+          field: StageName
+          modifier: (no grouping / buckets)
+        module: Opportunity
+  Quarterly_performance:
+    name: Quarterly performance
+    config:
+      reports:
+      - filter: Amount > 0
+        metrics:
+        - aggregate: SUM
+          axisPosition: left
+          axisType: linear
+          backgroundColor: '#009eff'
+          beginAtZero: true
+          field: Amount
+          fill: true
+          label: Amount
+          type: line
+        dimensions:
+        - autoSkip: true
+          conditions: {}
+          field: CloseDate
+          modifier: QUARTER
+        module: Opportunity
