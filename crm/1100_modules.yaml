@@ -1,3 +1,4 @@
+namespace: crm
 modules:
   Account:
     name: Account

@@ -1,3 +1,4 @@
+namespace: crm
 charts:
   LeadsByCountry:
     name: Leads by country

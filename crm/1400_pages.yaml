@@ -1,3 +1,4 @@
+namespace: crm
 pages:
   Home:
     title: Home
