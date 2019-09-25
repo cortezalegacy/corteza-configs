@@ -60,11 +60,11 @@ pages:
       options:
         feeds:
         - endField: EndDateTime
-          moduleID: "69055788747849745"
+          module: Event
           startField: ActivityDate
           titleField: Subject
         - endField: null
-          moduleID: "69055789049839633"
+          module: Task
           startField: ActivityDate
           titleField: Subject
         header:
