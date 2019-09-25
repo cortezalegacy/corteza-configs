@@ -1,5 +1,5 @@
 charts:
-  Leads_by_country:
+  LeadsByCountry:
     name: Leads by country
     config:
       reports:
@@ -15,7 +15,7 @@ charts:
           field: Country
           modifier: (no grouping / buckets)
         module: Lead
-  Leads_by_source:
+  LeadsBySource:
     name: Leads by source
     config:
       reports:
@@ -30,7 +30,7 @@ charts:
           field: LeadSource
           modifier: (no grouping / buckets)
         module: Lead
-  Leads_by_type:
+  LeadsByType:
     name: Leads by type
     config:
       reports:
@@ -45,7 +45,7 @@ charts:
           field: Status
           modifier: (no grouping / buckets)
         module: Lead
-  Leads_per_day:
+  LeadsPerDay:
     name: Leads per day
     config:
       reports:
@@ -63,25 +63,7 @@ charts:
           field: created_at
           modifier: DATE
         module: Lead
-  Leads_per_day_-_line:
-    name: Leads per day - line
-    config:
-      reports:
-      - metrics:
-        - axisPosition: left
-          axisType: linear
-          backgroundColor: '#e6f12e'
-          beginAtZero: true
-          field: count
-          fill: false
-          label: Leads per day
-          type: line
-        dimensions:
-        - conditions: {}
-          field: created_at
-          modifier: DATE
-        module: Lead
-  Opportunities_by_value:
+  OpportunitiesByValue:
     name: Opportunities by value
     config:
       reports:
@@ -97,7 +79,7 @@ charts:
           field: StageName
           modifier: (no grouping / buckets)
         module: Opportunity
-  Quarterly_performance:
+  QuarterlyPerformance:
     name: Quarterly performance
     config:
       reports:
