@@ -361,15 +361,6 @@ modules:
       LinkedIn:
         label: LinkedIn
         kind: String
-      Membership:
-        label: Membership
-        kind: Select
-        options:
-          options:
-          - NEWWA
-          - APPA
-          - WHATEVER
-          selectType: default
       NumberOfEmployees:
         label: Employees
         kind: Number
@@ -744,16 +735,6 @@ modules:
           - Project Manager
           - Technical Buyer
           - Other
-  Activity:
-    name: Activity
-    fields:
-      sample:
-        kind: String
-  Assets:
-    name: Assets
-    fields:
-      sample:
-        kind: String
   CampaignMember:
     name: CampaignMember
     fields:
@@ -1286,29 +1267,6 @@ modules:
           - Fax
           - Letter
           - Visit
-  Client:
-    name: Client
-    fields:
-      Language:
-        label: Language
-        kind: String
-        multi: true
-      Program:
-        label: Program
-        kind: String
-        multi: true
-      sample:
-        label: Client
-        kind: String
-  Consultants:
-    name: Consultants
-    fields:
-      lastname:
-        label: Last Name
-        kind: String
-      sample:
-        label: First Name
-        kind: String
   Contact:
     name: Contact
     fields:
@@ -2833,11 +2791,6 @@ modules:
           format: 0
           precision: 2
           suffix: €
-  Courses:
-    name: Courses
-    fields:
-      sample:
-        kind: String
   DefaultSettings:
     name: DefaultSettings
     fields:
@@ -2890,20 +2843,12 @@ modules:
         options:
           format: "0000000"
           precision: 0
-      QuoteSendEmailFrom:
-        label: Default email to send quote from
-        kind: Email
       SolutionNextNumber:
         label: Next number for a solution (updates after saving a new solution)
         kind: Number
         options:
           format: "0000000"
           precision: 0
-  Donations:
-    name: Donations
-    fields:
-      sample:
-        kind: String
   EmailTemplate:
     name: EmailTemplate
     fields:
@@ -3845,21 +3790,6 @@ modules:
       Website:
         label: Website
         kind: Url
-  Licence:
-    name: Licence
-    fields:
-      sample:
-        kind: String
-  MYIT:
-    name: MYIT
-    fields:
-      sample:
-        kind: String
-  Membership:
-    name: Membership
-    fields:
-      sample:
-        kind: String
   MilestoneType:
     name: MilestoneType
     fields:
@@ -4612,25 +4542,6 @@ modules:
         kind: String
       ProductCode:
         label: Product Code
-        kind: String
-  Projectcustomer:
-    name: Projectcustomer
-    fields:
-      contact:
-        kind: Record
-        options:
-          queryFields: []
-          selectType: default
-      first name:
-        label: first name
-        kind: String
-      sample:
-        label: Sample
-        kind: String
-  Public_Community_Test:
-    name: Public Community Test
-    fields:
-      sample:
         kind: String
   Question:
     name: Question
@@ -6059,28 +5970,6 @@ modules:
           - Accepted
           - Obsolete
           - Duplicate
-  Support:
-    name: Support
-    fields:
-      Attachment:
-        kind: File
-        options:
-          allowDocuments: false
-          allowImages: false
-          mode: list
-        multi: true
-      Description:
-        kind: String
-        required: true
-      E-mail:
-        kind: Email
-        required: true
-      Subject:
-        kind: String
-        required: true
-      sample:
-        kind: String
-        required: true
   Task:
     name: Task
     fields:
