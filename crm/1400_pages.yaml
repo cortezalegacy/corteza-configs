@@ -1,6 +1,6 @@
 namespace: crm
 pages:
-  Home:
+  - handle: Home
     title: Home
     blocks:
     - title: New Leads
@@ -86,7 +86,7 @@ pages:
       kind: Chart
       xywh: [9, 7, 3, 7]
     visible: true
-  Accounts:
+  - handle: Accounts
     title: Accounts
     blocks:
     - title: All accounts
@@ -108,7 +108,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 19]
     pages:
-      RecordPageForModuleAccount:
+      - handle: RecordPageForModuleAccount
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -287,7 +287,7 @@ pages:
           kind: Automation
           xywh: [6, 12, 3, 8]
         pages:
-          RecordPageForModuleAccountContactRole:
+          - handle: RecordPageForModuleAccountContactRole
             module: AccountContactRole
             title: Record page for module "AccountContactRole"
             blocks:
@@ -302,11 +302,11 @@ pages:
               xywh: [0, 0, 5, 15]
             visible: false
         visible: true
-      MyAccounts:
+      - handle: MyAccounts
         title: My Accounts
         visible: true
     visible: true
-  Leads:
+  - handle: Leads
     title: Leads
     blocks:
     - title: List of leads
@@ -351,7 +351,7 @@ pages:
       kind: Chart
       xywh: [9, 14, 3, 7]
     pages:
-      RecordPageForModuleLead:
+      - handle: RecordPageForModuleLead
         module: Lead
         title: Record page for module "Lead"
         blocks:
@@ -458,7 +458,7 @@ pages:
           kind: Automation
           xywh: [6, 15, 3, 8]
         visible: true
-      AllNewLeads:
+      - handle: AllNewLeads
         title: All New Leads
         blocks:
         - title: New Leads
@@ -481,7 +481,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 20]
         visible: true
-      MyLeads:
+      - handle: MyLeads
         title: My Leads
         blocks:
         - title: My Leads
@@ -505,7 +505,7 @@ pages:
           xywh: [0, 0, 12, 21]
         visible: true
     visible: true
-  Opportunities:
+  - handle: Opportunities
     title: Opportunities
     blocks:
     - title: List of Opportunities
@@ -525,7 +525,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleOpportunity:
+      - handle: RecordPageForModuleOpportunity
         module: Opportunity
         title: Record page for module "Opportunity"
         blocks:
@@ -684,7 +684,7 @@ pages:
           kind: Automation
           xywh: [8, 11, 4, 8]
         pages:
-          RecordPageForModuleOpportunityLineItem:
+          - handle: RecordPageForModuleOpportunityLineItem
             module: OpportunityLineItem
             title: Record page for module "OpportunityLineItem"
             blocks:
@@ -709,7 +709,7 @@ pages:
               kind: Record
               xywh: [4, 0, 4, 13]
             visible: false
-          RecordPageForModuleOpportunityCompetitor:
+          - handle: RecordPageForModuleOpportunityCompetitor
             module: OpportunityCompetitor
             title: Record page for module "OpportunityCompetitor"
             blocks:
@@ -723,7 +723,7 @@ pages:
               kind: Record
               xywh: [0, 0, 5, 17]
             visible: false
-          RecordPageForModuleOpportunityContactRole:
+          - handle: RecordPageForModuleOpportunityContactRole
             module: OpportunityContactRole
             title: Record page for module "OpportunityContactRole"
             blocks:
@@ -737,7 +737,7 @@ pages:
               kind: Record
               xywh: [0, 0, 4, 16]
             pages:
-              RecordPageForModulePricebookEntry:
+              - handle: RecordPageForModulePricebookEntry
                 module: PricebookEntry
                 title: Record page for module "PricebookEntry"
                 blocks:
@@ -752,7 +752,7 @@ pages:
                 visible: false
             visible: false
         visible: false
-      MyOpportunities:
+      - handle: MyOpportunities
         title: My Opportunities
         blocks:
         - title: My Opportunities
@@ -774,7 +774,7 @@ pages:
           xywh: [0, 0, 12, 20]
         visible: true
     visible: true
-  Contacts:
+  - handle: Contacts
     title: Contacts
     blocks:
     - title: List of Contacts
@@ -793,7 +793,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleContact:
+      - handle: RecordPageForModuleContact
         module: Contact
         title: Record page for module "Contact"
         blocks:
@@ -919,7 +919,7 @@ pages:
           xywh: [6, 13, 3, 8]
         visible: false
     visible: true
-  Quotes:
+  - handle: Quotes
     title: Quotes
     blocks:
     - title: List of Quotes
@@ -941,7 +941,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleQuote:
+      - handle: RecordPageForModuleQuote
         module: Quote
         title: Record page for module "Quote"
         blocks:
@@ -1108,7 +1108,7 @@ pages:
           kind: Automation
           xywh: [8, 12, 4, 8]
         pages:
-          RecordPageForModuleQuoteLineItem:
+          - handle: RecordPageForModuleQuoteLineItem
             module: QuoteLineItem
             title: Record page for module "QuoteLineItem"
             blocks:
@@ -1130,7 +1130,7 @@ pages:
             visible: false
         visible: false
     visible: true
-  Products:
+  - handle: Products
     title: Products
     blocks:
     - title: List of Products
@@ -1147,7 +1147,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleProduct:
+      - handle: RecordPageForModuleProduct
         module: Product
         title: Record page for module "Product"
         blocks:
@@ -1201,7 +1201,7 @@ pages:
           kind: RecordList
           xywh: [6, 10, 6, 8]
         visible: false
-      PriceBook:
+      - handle: PriceBook
         title: Price book
         blocks:
         - title: Price books
@@ -1217,7 +1217,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 20]
         pages:
-          RecordPageForModuleCaseContactRole:
+          - handle: RecordPageForModuleCaseContactRole
             module: CaseContactRole
             title: Record page for module "CaseContactRole"
             blocks:
@@ -1231,7 +1231,7 @@ pages:
               kind: Record
               xywh: [0, 0, 5, 16]
             visible: false
-          RecordPageForModulePricebook:
+          - handle: RecordPageForModulePricebook
             module: Pricebook
             title: Record page for module "Pricebook"
             blocks:
@@ -1271,7 +1271,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  Contracts:
+  - handle: Contracts
     title: Contracts
     blocks:
     - title: List of Contracts
@@ -1290,7 +1290,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleContract:
+      - handle: RecordPageForModuleContract
         module: Contract
         title: Record page for module "Contract"
         blocks:
@@ -1399,7 +1399,7 @@ pages:
           kind: RecordList
           xywh: [8, 21, 4, 8]
         pages:
-          RecordPageForModuleContractLineItem:
+          - handle: RecordPageForModuleContractLineItem
             module: ContractLineItem
             title: Record page for module "ContractLineItem"
             blocks:
@@ -1436,7 +1436,7 @@ pages:
               kind: RecordList
               xywh: [8, 0, 4, 11]
             visible: false
-          RecordPageForModuleEntitlement:
+          - handle: RecordPageForModuleEntitlement
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -1502,7 +1502,7 @@ pages:
               kind: RecordList
               xywh: [8, 0, 4, 13]
             pages:
-              RecordPageForModuleEntitlementTemplate:
+              - handle: RecordPageForModuleEntitlementTemplate
                 module: EntitlementTemplate
                 title: Record page for module "EntitlementTemplate"
                 blocks:
@@ -1518,7 +1518,7 @@ pages:
                   kind: Record
                   xywh: [0, 0, 4, 14]
                 visible: false
-              RecordPageForModuleEntitlementContact:
+              - handle: RecordPageForModuleEntitlementContact
                 module: EntitlementContact
                 title: Record page for module "EntitlementContact"
                 blocks:
@@ -1532,7 +1532,7 @@ pages:
                   xywh: [0, 0, 4, 14]
                 visible: false
             visible: false
-          RecordPageForModuleContractContactRole:
+          - handle: RecordPageForModuleContractContactRole
             module: ContractContactRole
             title: Record page for module "ContractContactRole"
             blocks:
@@ -1548,7 +1548,7 @@ pages:
             visible: false
         visible: false
     visible: true
-  Cases:
+  - handle: Cases
     title: Cases
     blocks:
     - title: List of Cases
@@ -1569,7 +1569,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleCase:
+      - handle: RecordPageForModuleCase
         module: Case
         title: Record page for module "Case"
         blocks:
@@ -1688,7 +1688,7 @@ pages:
           kind: Record
           xywh: [6, 0, 3, 14]
         pages:
-          RecordPageForModuleCaseUpdate:
+          - handle: RecordPageForModuleCaseUpdate
             module: CaseUpdate
             title: Record page for module "CaseUpdate"
             blocks:
@@ -1705,7 +1705,7 @@ pages:
               kind: Record
               xywh: [0, 0, 4, 20]
             visible: false
-          RecordPageForModuleCaseMilestone:
+          - handle: RecordPageForModuleCaseMilestone
             module: CaseMilestone
             title: Record page for module "CaseMilestone"
             blocks:
@@ -1724,7 +1724,7 @@ pages:
               kind: Record
               xywh: [0, 0, 5, 19]
             pages:
-              RecordPageForModuleMilestoneType:
+              - handle: RecordPageForModuleMilestoneType
                 module: MilestoneType
                 title: Record page for module "MilestoneType"
                 blocks:
@@ -1739,7 +1739,7 @@ pages:
                 visible: false
             visible: false
         visible: false
-      Solutions:
+      - handle: Solutions
         title: Solutions
         blocks:
         - title: List of Solutions
@@ -1757,7 +1757,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 20]
         pages:
-          RecordPageForModuleSolution:
+          - handle: RecordPageForModuleSolution
             module: Solution
             title: Record page for module "Solution"
             blocks:
@@ -1777,7 +1777,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  Campaigns:
+  - handle: Campaigns
     title: Campaigns
     blocks:
     - title: List of Campaigns
@@ -1797,7 +1797,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleCampaign:
+      - handle: RecordPageForModuleCampaign
         module: Campaigns
         title: Record page for module "Campaign"
         blocks:
@@ -1876,7 +1876,7 @@ pages:
           kind: RecordList
           xywh: [8, 21, 4, 8]
         pages:
-          RecordPageForModuleCampaignMember:
+          - handle: RecordPageForModuleCampaignMember
             module: CampaignMember
             title: Record page for module "CampaignMember"
             blocks:
@@ -1892,14 +1892,14 @@ pages:
               kind: Record
               xywh: [0, 0, 5, 13]
             pages:
-              RecordPageForModuleCampaignMemberStatus:
+              - handle: RecordPageForModuleCampaignMemberStatus
                 module: 'Error: module with ID 69055788664029201 does not exist'
                 title: Record page for module "CampaignMemberStatus"
                 visible: false
             visible: false
         visible: false
     visible: true
-  Tasks:
+  - handle: Tasks
     title: Tasks
     blocks:
     - title: List of Tasks
@@ -1923,7 +1923,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleTask:
+      - handle: RecordPageForModuleTask
         module: Task
         title: Record page for module "Task"
         blocks:
@@ -1958,7 +1958,7 @@ pages:
           xywh: [4, 0, 4, 20]
         visible: false
     visible: true
-  Events:
+  - handle: Events
     title: Events
     blocks:
     - title: List of Events
@@ -1979,7 +1979,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleEvent:
+      - handle: RecordPageForModuleEvent
         module: Event
         title: Record page for module "Event"
         blocks:
@@ -2016,7 +2016,7 @@ pages:
           xywh: [4, 0, 4, 20]
         visible: false
     visible: true
-  Notes:
+  - handle: Notes
     title: Notes
     blocks:
     - title: List of Notes
@@ -2039,7 +2039,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 20]
     pages:
-      RecordPageForModuleNote:
+      - handle: RecordPageForModuleNote
         module: Note
         title: Record page for module "Note"
         blocks:
@@ -2075,7 +2075,7 @@ pages:
           xywh: [8, 0, 4, 20]
         visible: false
     visible: true
-  Dashboards:
+  - handle: Dashboards
     title: Dashboards
     blocks:
     - title: Content
@@ -2092,7 +2092,7 @@ pages:
       kind: Chart
       xywh: [5, 0, 3, 16]
     pages:
-      DefaultSettings:
+      - handle: DefaultSettings
         title: Default Settings
         description: A list of defaults values which are called upon in automation
           processes.
@@ -2109,7 +2109,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 7]
         pages:
-          RecordPageForModuleDefaultSettings:
+          - handle: RecordPageForModuleDefaultSettings
             module: DefaultSettings
             title: Record page for module "DefaultSettings"
             blocks:
@@ -2154,11 +2154,12 @@ pages:
             visible: false
         visible: true
     visible: true
-  UnpublishedModules:
+  - handle: UnpublishedModules
     title: Unpublished modules
     pages:
-      Questions:
+      - handle: Questions
         title: Questions
+        visible: false
         blocks:
         - title: List of Questions
           options:
@@ -2173,99 +2174,98 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 20]
         pages:
-          RecordPageForModuleQuestion:
-            module: Question
-            title: Record page for module "Question"
+        - handle: RecordPageForModuleQuestion
+          module: Question
+          title: Record page for module "Question"
+          blocks:
+          - title: Question Details
+            options:
+              fields:
+              - name: Title
+              - name: Body
+              - name: NumReplies
+              - name: BestReplyId
+              - name: UpVotes
+              - name: VoteScore
+            kind: Record
+            xywh: [0, 0, 4, 13]
+          - title: Replies
+            options:
+              fields:
+              - name: Body
+              - name: Name
+              - name: UpVotes
+              - name: DownVotes
+              - name: VoteTotal
+              module: Reply
+              page: RecordPageForModuleReply
+              perPage: 5
+              prefilter: QuestionId = ${recordID}
+            kind: RecordList
+            xywh: [0, 13, 12, 7]
+          - title: Votes
+            options:
+              fields:
+              - name: Score
+              module: Vote
+              page: RecordPageForModuleVote
+              perPage: 8
+              prefilter: QuestionId = ${recordID}
+            kind: RecordList
+            xywh: [4, 0, 8, 13]
+          pages:
+          - handle: RecordPageForModuleVote
+            module: Vote
+            title: Record page for module "Vote"
             blocks:
-            - title: Question Details
+            - title: Vote Score
               options:
                 fields:
-                - name: Title
-                - name: Body
-                - name: NumReplies
-                - name: BestReplyId
-                - name: UpVotes
-                - name: VoteScore
+                - name: Score
+                - name: CreatedById
+                - name: CreatedDate
               kind: Record
               xywh: [0, 0, 4, 13]
-            - title: Replies
+            - title: Related Object
               options:
                 fields:
+                - name: IdeaId
+                - name: ReplyId
+                - name: QuestionId
+              kind: Record
+              xywh: [4, 0, 4, 13]
+            visible: false
+          - handle: RecordPageForModuleReply
+            module: Reply
+            title: Record page for module "Reply"
+            blocks:
+            - title: Reply Details
+              options:
+                fields:
+                - name: QuestionId
+                - name: IdeaId
                 - name: Body
                 - name: Name
                 - name: UpVotes
                 - name: DownVotes
                 - name: VoteTotal
-                module: Reply
-                page: RecordPageForModuleReply
-                perPage: 5
-                prefilter: QuestionId = ${recordID}
-              kind: RecordList
-              xywh: [0, 13, 12, 7]
+              kind: Record
+              xywh: [0, 0, 6, 20]
             - title: Votes
               options:
                 fields:
                 - name: Score
+                - name: CreatedById
+                - name: CreatedDate
                 module: Vote
                 page: RecordPageForModuleVote
-                perPage: 8
-                prefilter: QuestionId = ${recordID}
+                perPage: 20
+                prefilter: ReplyId = ${recordID}
               kind: RecordList
-              xywh: [4, 0, 8, 13]
-            pages:
-              RecordPageForModuleVote:
-                module: Vote
-                title: Record page for module "Vote"
-                blocks:
-                - title: Vote Score
-                  options:
-                    fields:
-                    - name: Score
-                    - name: CreatedById
-                    - name: CreatedDate
-                  kind: Record
-                  xywh: [0, 0, 4, 13]
-                - title: Related Object
-                  options:
-                    fields:
-                    - name: IdeaId
-                    - name: ReplyId
-                    - name: QuestionId
-                  kind: Record
-                  xywh: [4, 0, 4, 13]
-                visible: false
-              RecordPageForModuleReply:
-                module: Reply
-                title: Record page for module "Reply"
-                blocks:
-                - title: Reply Details
-                  options:
-                    fields:
-                    - name: QuestionId
-                    - name: IdeaId
-                    - name: Body
-                    - name: Name
-                    - name: UpVotes
-                    - name: DownVotes
-                    - name: VoteTotal
-                  kind: Record
-                  xywh: [0, 0, 6, 20]
-                - title: Votes
-                  options:
-                    fields:
-                    - name: Score
-                    - name: CreatedById
-                    - name: CreatedDate
-                    module: Vote
-                    page: RecordPageForModuleVote
-                    perPage: 20
-                    prefilter: ReplyId = ${recordID}
-                  kind: RecordList
-                  xywh: [6, 0, 6, 20]
-                visible: false
+              xywh: [6, 0, 6, 20]
             visible: false
-        visible: false
-      Ideas:
+          visible: false
+      - handle: Ideas
         title: Ideas
         blocks:
         - title: List of Ideas
@@ -2283,7 +2283,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 20]
         pages:
-          RecordPageForModuleIdea:
+          - handle: RecordPageForModuleIdea
             module: Idea
             title: Record page for module "Idea"
             blocks:
@@ -2328,7 +2328,7 @@ pages:
               xywh: [4, 0, 4, 20]
             visible: false
         visible: false
-      Emails:
+      - handle: Emails
         title: Emails
         blocks:
         - title: List of Email Templates
@@ -2344,7 +2344,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 20]
         pages:
-          RecordPageForModuleEmailTemplate:
+          - handle: RecordPageForModuleEmailTemplate
             module: EmailTemplate
             title: Record page for module "EmailTemplate"
             blocks:
