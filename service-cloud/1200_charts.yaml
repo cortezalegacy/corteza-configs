@@ -1,0 +1,243 @@
+namespace: service-cloud
+charts:
+  ActiveEntitlements:
+    name: Number of active entitlements
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#11ff57'
+          field: count
+          fixTooltips: true
+          type: pie
+        module: Entitlement
+        renderer: {}
+  AverageTimeSpentPerCase:
+    name: Average time spent per case
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - aggregate: AVG
+          backgroundColor: '#ff9937'
+          beginAtZero: true
+          field: TotalTime
+          fixTooltips: false
+          label: Average case time (in hours)
+          type: bar
+        module: Case
+        renderer: {}
+  CaseUpdatesPerType:
+    name: Case updates per type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#b51392'
+          field: count
+          fixTooltips: true
+          relativeValue: true
+          type: doughnut
+        module: Update
+        renderer: {}
+  CasesByCategory:
+    name: Cases by category
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#ff0074'
+          field: count
+          fixTooltips: true
+          label: Category
+          relativePrecision: "2"
+          relativeValue: true
+          type: doughnut
+        module: Case
+        renderer: {}
+  CasesByPriority:
+    name: Cases by priority
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Priority
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#f50d23'
+          field: count
+          fixTooltips: true
+          label: Priority
+          relativeValue: true
+          type: doughnut
+        module: Case
+        renderer: {}
+  CasesByStatus:
+    name: Cases by status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#13b1dc'
+          field: count
+          fixTooltips: true
+          label: Cases by status
+          relativeValue: true
+          type: doughnut
+        module: Case
+        renderer: {}
+  ClosedCasesPerMonth:
+    name: Closed cases per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: CloseDate
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#4ec811'
+          beginAtZero: true
+          field: count
+          fill: true
+          fixTooltips: false
+          label: Closed cases
+          type: line
+        module: Case
+        renderer: {}
+  CostPerCategory:
+    name: Cost per category
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#05ea26'
+          field: TotalCost
+          fixTooltips: true
+          label: Cost per category (in $)
+          relativeValue: false
+          type: pie
+        module: Case
+        renderer: {}
+  NewCasesByMonth:
+    name: New cases per month
+    config:
+      reports:
+      - dimensions:
+        - autoSkip: true
+          conditions: {}
+          field: created_at
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#3baef0'
+          beginAtZero: true
+          field: count
+          fill: true
+          fixTooltips: false
+          label: New cases
+          type: line
+        module: Case
+        renderer: {}
+  NumberOfKnowledgeBaseArticlesPerType:
+    name: Number of Knowledge Base articles per type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#17c52f'
+          field: count
+          fixTooltips: true
+          label: Knowledge Base articles per type
+          relativeValue: false
+          type: pie
+        module: KnowledgeBase
+        renderer: {}
+  TotalCostPerMonth:
+    name: Total cost per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#189d00'
+          beginAtZero: true
+          field: Cost
+          label: Total cost per month (in $)
+          type: bar
+        module: Update
+        renderer: {}
+  TotalTimeSpentPerCategory:
+    name: 'Total time spent per category '
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#ff8900'
+          field: TotalTime
+          fixTooltips: true
+          label: Total time spent per category (in hours)
+          type: pie
+        module: Case
+        renderer: {}
+  TotalTimeSpentPerMonth:
+    name: Total time spent per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#0d83e4'
+          beginAtZero: true
+          field: TimeSpend
+          fixTooltips: false
+          label: Total time spent (in hours)
+          type: bar
+        module: Update
+        renderer: {}
