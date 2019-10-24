@@ -15,7 +15,6 @@ charts:
           fixTooltips: true
           type: pie
         module: Entitlement
-        renderer: {}
   AverageTimeSpentPerCase:
     name: Average time spent per case
     config:
@@ -34,7 +33,6 @@ charts:
           label: Average case time (in hours)
           type: bar
         module: Case
-        renderer: {}
   CaseUpdatesPerType:
     name: Case updates per type
     config:
@@ -51,7 +49,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Update
-        renderer: {}
   CasesByCategory:
     name: Cases by category
     config:
@@ -71,7 +68,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
-        renderer: {}
   CasesByPriority:
     name: Cases by priority
     config:
@@ -89,7 +85,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
-        renderer: {}
   CasesByStatus:
     name: Cases by status
     config:
@@ -107,7 +102,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
-        renderer: {}
   ClosedCasesPerMonth:
     name: Closed cases per month
     config:
@@ -127,7 +121,6 @@ charts:
           label: Closed cases
           type: line
         module: Case
-        renderer: {}
   CostPerCategory:
     name: Cost per category
     config:
@@ -146,7 +139,6 @@ charts:
           relativeValue: false
           type: pie
         module: Case
-        renderer: {}
   NewCasesByMonth:
     name: New cases per month
     config:
@@ -167,7 +159,6 @@ charts:
           label: New cases
           type: line
         module: Case
-        renderer: {}
   NumberOfKnowledgeBaseArticlesPerType:
     name: Number of Knowledge Base articles per type
     config:
@@ -185,7 +176,6 @@ charts:
           relativeValue: false
           type: pie
         module: KnowledgeBase
-        renderer: {}
   TotalCostPerMonth:
     name: Total cost per month
     config:
@@ -203,7 +193,6 @@ charts:
           label: Total cost per month (in $)
           type: bar
         module: Update
-        renderer: {}
   TotalTimeSpentPerCategory:
     name: 'Total time spent per category '
     config:
@@ -221,7 +210,6 @@ charts:
           label: Total time spent per category (in hours)
           type: pie
         module: Case
-        renderer: {}
   TotalTimeSpentPerMonth:
     name: Total time spent per month
     config:
@@ -240,4 +228,3 @@ charts:
           label: Total time spent (in hours)
           type: bar
         module: Update
-        renderer: {}
