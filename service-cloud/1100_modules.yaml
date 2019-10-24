@@ -1628,6 +1628,15 @@ modules:
           queryFields:
           - Name
           selectType: default
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Number
+          module: Case
+          queryFields:
+          - Number
+          selectType: default
   EmailTemplate:
     name: EmailTemplate
     meta: '{}'

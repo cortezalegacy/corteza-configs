@@ -1,0 +1,33 @@
+namespace: service-cloud
+records:
+  Department:
+  - values:
+      Name: "Service"
+      HourCost: "50"
+  EmailTemplate:
+  - values:
+      Name: "Case Update"
+      Description: "This is the default case update template"
+      Subject: "Case: [{{Case.Number}}] {{Case.Subject}}"
+      Body: |-
+        <p>
+          <img src="https://cortezaproject.org/wp-content/uploads/2019/05/corteza_logo-300x62.png" alt="logo">
+        </p>
+        <h2>Dear {{Contact.FirstName}},</h2>
+        <p>
+          We are contacting you with regard to the case "{{Case.Subject}}".
+        </p>
+        <p>
+          ADD_REASON_FOR_CONTACT_HERE
+        </p>
+        <p>
+          Kind regards,
+        </p>
+        <p>
+          The service team
+        </p>
+  Settings:
+  - values:
+      KBNextNumber: "1"
+      DefaultCostPerHour: "50"
+      DefaultTimeUpdate: "0.25"

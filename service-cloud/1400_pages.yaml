@@ -259,6 +259,7 @@ pages:
                   options:
                     fields:
                     - name: ContactId
+                    - name: CaseId
                   style:
                     variants: {bodyBg: white, border: primary, headerBg: white,
                       headerText: primary}

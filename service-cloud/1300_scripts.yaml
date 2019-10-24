@@ -48,42 +48,98 @@ scripts:
       module: Case
       resource: compose:record
   CaseStatusChange:
-    source: "// Get the current status of the case\nlet currentStatus = $record.values.Status\nlet
-      previousStatus = $record.values.PreviousStatus\n\n// Check if there is no
-      status. If so, the case is new and set it as new.\nif (!currentStatus) {\n
-      \ currentStatus = 'New'\n}\nif (!previousStatus) {\n  previousStatus = 'None'\n}\n\n//
-      Check if we need to insert a status change update\nif (currentStatus !=
-      previousStatus) {\n  \n  // Insert the status update\n  // First, get the
-      default settings\n  return Compose.findLastRecord('Settings').then(settings
-      => {\n    \n    let defaultTimeSpend = settings.values.DefaultTimeUpdate\n
-      \   let defaultCost = settings.values.DefaultCostPerHour\n    let defaultDepartment
-      = settings.values.DefaultDepartment\n\n    // Get the record from the department\n
-      \   return Compose.findRecordByID(defaultDepartment, 'Department').then(departmentRecord
-      => {\n\n      // Get the cost associated to the department\n      if (departmentRecord.values.HourCost)
-      {\n        defaultCost = departmentRecord.values.HourCost\n      }\n      return
-      departmentRecord\n      \n    }).then(departmentRecord => {\n      \n      //
-      calculat the total cost\n      let totalCost = parseFloat(defaultCost) *
-      parseFloat(defaultTimeSpend)\n      \n      // Make the update record\n
-      \     return Compose.makeRecord({\n        'CaseId': $record.recordID,\n
-      \       'Type': 'Status change',\n        'Subject': 'Status changed from
-      ' + previousStatus + ' to ' + currentStatus,\n        'AccountId': $record.values.AccountId,\n
-      \       'From': 'Automatic message',\n        'Department': defaultDepartment,\n
-      \       'TimeSpend': defaultTimeSpend,\n        'Cost': totalCost\n      },
-      'Update')\n  \n        .then(myUpdate => {\n  \n          return Compose.saveRecord(myUpdate)\n
-      \ \n        }).catch(err => {\n          // solve the problem\n          console.error(err)\n
-      \       })\n      \n    }).then(departmentRecord => {\n\n      // Calculate
-      and store the total price of the ticket\n      let totalCost = $record.values.TotalCost\n
-      \     if (!totalCost || totalCost === '' || isNaN(totalCost)) {\n        totalCost
-      = 0\n      }\n      \n      let totalTime = $record.values.TotalTime\n      if
-      (!totalTime || totalTime === '' || isNaN(totalTime)) {\n        totalTime
-      = 0\n      }\n      \n      // Update the total time and cost in the ticket\n
-      \     $record.values.TotalCost = parseFloat(totalCost) + (parseFloat(defaultCost)
-      * parseFloat(defaultTimeSpend))\n      $record.values.TotalTime = parseFloat(totalTime)
-      + parseFloat(defaultTimeSpend)\n      \n      // Store the new state in
-      the previous state field\n      $record.values.PreviousStatus = currentStatus\n
-      \     \n      return\n    \n    }).catch(err => {\n      // solve the problem\n
-      \     console.error(err)\n    })\n    \n  }).catch(err => {\n    // solve
-      the problem\n    console.error(err)\n  })\n\n}"
+    source: |-
+      // Get the current status of the case
+      let currentStatus = $record.values.Status
+      let previousStatus = $record.values.PreviousStatus
+
+      // Check if there is no status. If so, the case is new and set it as new.
+      if (!currentStatus) {
+        currentStatus = 'New'
+      }
+      if (!previousStatus) {
+        previousStatus = 'None'
+      }
+
+      // Check if we need to insert a status change update
+      if (currentStatus != previousStatus) {
+        
+        // Insert the status update
+        // First, get the default settings
+        return Compose.findLastRecord('Settings').then(settings => {
+          
+          let defaultTimeSpend = settings.values.DefaultTimeUpdate
+          let defaultCost = settings.values.DefaultCostPerHour
+          let defaultDepartment = settings.values.DefaultDepartment
+
+          // Get the record from the department
+          return Compose.findRecordByID(defaultDepartment, 'Department').then(departmentRecord => {
+
+            // Get the cost associated to the department
+            if (departmentRecord.values.HourCost) {
+              defaultCost = departmentRecord.values.HourCost
+            }
+            return departmentRecord
+            
+          }).then(departmentRecord => {
+            
+            // calculat the total cost
+            let totalCost = parseFloat(defaultCost) * parseFloat(defaultTimeSpend)
+            
+            // Make the update record
+            return Compose.makeRecord({
+              'CaseId': $record.recordID,
+              'Type': 'Status change',
+              'Subject': 'Status changed from ' + previousStatus + ' to ' + currentStatus,
+              'AccountId': $record.values.AccountId,
+              'From': 'Automatic message',
+              'Department': defaultDepartment,
+              'TimeSpend': defaultTimeSpend,
+              'Cost': totalCost
+            }, 'Update')
+        
+              .then(myUpdate => {
+        
+                return Compose.saveRecord(myUpdate)
+        
+              }).catch(err => {
+                // solve the problem
+                console.error(err)
+              })
+            
+          }).then(departmentRecord => {
+
+            // Calculate and store the total price of the ticket
+            let totalCost = $record.values.TotalCost
+            if (!totalCost || totalCost === '' || isNaN(totalCost)) {
+              totalCost = 0
+            }
+            
+            let totalTime = $record.values.TotalTime
+            if (!totalTime || totalTime === '' || isNaN(totalTime)) {
+              totalTime = 0
+            }
+            
+            // Update the total time and cost in the ticket
+            $record.values.TotalCost = parseFloat(totalCost) + (parseFloat(defaultCost) * parseFloat(defaultTimeSpend))
+            $record.values.TotalTime = parseFloat(totalTime) + parseFloat(defaultTimeSpend)
+            
+            // Store the new state in the previous state field
+            $record.values.PreviousStatus = currentStatus
+            
+            return
+          
+          }).catch(err => {
+            // solve the problem
+            console.error(err)
+          })
+          
+        }).catch(err => {
+          // solve the problem
+          console.error(err)
+        })
+
+      }
     async: false
     runInUA: false
     critical: true
@@ -97,21 +153,54 @@ scripts:
       module: Case
       resource: compose:record
   ContactSetRecordLabel:
-    source: "// Set the record label string\nlet recordLabel = ''\n\n// Get the
-      first name\nlet firstName = $record.values.FirstName\nif (!firstName) {\n
-      \ firstName = ''\n}\n\n// Get the last name\nlet lastName = $record.values.LastName\nif
-      (!lastName) {\n  lastName = ''\n}\n\n// Create the full name\nlet fullName
-      = ''\nif ((firstName !== '') && (lastName === '')) {\n  recordLabel = firstName\n}\n\nif
-      ((firstName === '') && (lastName !== '')) {\n  recordLabel = lastName\n}\n\nif
-      ((firstName !== '') && (lastName !== '')) {\n  recordLabel = firstName +
-      ' ' + lastName\n}\n\n// Get the company name from the account\n// Check
-      if there is a related account, to map the fields of the account\nlet accountId
-      = $record.values.AccountId\nif (accountId) {\n    return Compose.findRecordByID(accountId,
-      'Account').then(accountRecord => {\n    \n      // Add to the record label
-      \n      recordLabel = recordLabel + ' (' + accountRecord.values.AccountName
-      + ')'\n      $record.values.RecordLabel = recordLabel\n\n    }).catch(err
-      => {\n      // solve the problem\n      $record.values.RecordLabel = recordLabel\n\n
-      \     console.error(err)\n    })\n  \n}"
+    source: |-
+      // Set the record label string
+      let recordLabel = ''
+
+      // Get the first name
+      let firstName = $record.values.FirstName
+      if (!firstName) {
+        firstName = ''
+      }
+
+      // Get the last name
+      let lastName = $record.values.LastName
+      if (!lastName) {
+        lastName = ''
+      }
+
+      // Create the full name
+      let fullName = ''
+      if ((firstName !== '') && (lastName === '')) {
+        recordLabel = firstName
+      }
+
+      if ((firstName === '') && (lastName !== '')) {
+        recordLabel = lastName
+      }
+
+      if ((firstName !== '') && (lastName !== '')) {
+        recordLabel = firstName + ' ' + lastName
+      }
+
+      // Get the company name from the account
+      // Check if there is a related account, to map the fields of the account
+      let accountId = $record.values.AccountId
+      if (accountId) {
+          return Compose.findRecordByID(accountId, 'Account').then(accountRecord => {
+          
+            // Add to the record label 
+            recordLabel = recordLabel + ' (' + accountRecord.values.AccountName + ')'
+            $record.values.RecordLabel = recordLabel
+
+          }).catch(err => {
+            // solve the problem
+            $record.values.RecordLabel = recordLabel
+
+            console.error(err)
+          })
+        
+      }
     async: false
     runInUA: false
     critical: true
@@ -125,21 +214,39 @@ scripts:
       module: Contact
       resource: compose:record
   EmailSend:
-    source: "const { toJSON, ...values } = $record.values\n$record = new Record($record.module,
-      { ...$record, values })\n\nCompose.findRecordByID($record.values.ContactId,
-      'Contact').then(contactRecord => {\n  \n  return Compose.sendMail(contactRecord.values.Email,
-      $record.values.Subject, { html: $record.values.HtmlBody }).then(() => {\n
-      \ \n    ComposeUI.success(`The email \"${$record.values.Subject}\" has been
-      sent to \"${contactRecord.values.RecordLabel}: ${contactRecord.values.Email}\".`)\n
-      \ \n    $record.values.Status = \"Sent\"\n    $record.values.ToAddress =
-      contactRecord.values.Email\n    \n    var m = new Date()\n    var dateString
-      = m.getUTCFullYear() +\"/\"+ (m.getUTCMonth()+1) +\"/\"+ m.getUTCDate()
-      + \" \" + m.getUTCHours() + \":\" + m.getUTCMinutes() + \":\" + m.getUTCSeconds()\n
-      \   $record.values.MessageDate = dateString\n    Compose.saveRecord($record).then(mySavedRecord
-      => {\n      ComposeUI.gotoRecordViewer(mySavedRecord)\n      return\n    }).catch(err
-      => {\n      // solve the problem\n      console.error(err)\n    })\n    \n
-      \ }).catch(err => {\n    // solve the problem\n    console.error(err)\n
-      \ })\n  \n}).catch(err => {\n  // solve the problem\n  console.error(err)\n})"
+    source: |-
+      const { toJSON, ...values } = $record.values
+      $record = new Record($record.module, { ...$record, values })
+
+      Compose.findRecordByID($record.values.ContactId, 'Contact').then(contactRecord => {
+        
+        return Compose.sendMail(contactRecord.values.Email, $record.values.Subject, { html: $record.values.HtmlBody }).then(() => {
+        
+          ComposeUI.success(`The email "${$record.values.Subject}" has been sent to "${contactRecord.values.RecordLabel}: ${contactRecord.values.Email}".`)
+        
+          $record.values.Status = "Sent"
+          $record.values.ToAddress = contactRecord.values.Email
+          
+          var m = new Date()
+          var dateString = m.getUTCFullYear() +"/"+ (m.getUTCMonth()+1) +"/"+ m.getUTCDate() + " " + m.getUTCHours() + ":" + m.getUTCMinutes() + ":" + m.getUTCSeconds()
+          $record.values.MessageDate = dateString
+          Compose.saveRecord($record).then(mySavedRecord => {
+            ComposeUI.gotoRecordViewer(mySavedRecord)
+            return
+          }).catch(err => {
+            // solve the problem
+            console.error(err)
+          })
+          
+        }).catch(err => {
+          // solve the problem
+          console.error(err)
+        })
+        
+      }).catch(err => {
+        // solve the problem
+        console.error(err)
+      })
     async: false
     runInUA: true
     critical: true
@@ -150,29 +257,67 @@ scripts:
       module: EmailMessage
       resource: compose:record
   EmailTemplateLoad:
-    source: "const { toJSON, ...values } = $record.values\n$record = new Record($record.module,
-      { ...$record, values })\n\nif(!$record.recordID) {\n  ComposeUI.success(`Please
-      save the record before loading the template`)\n  return\n}\n\n// Check if
-      there is a template\nlet templateId = $record.values.EmailTemplateId\n\nif
-      (templateId) {\n  \n    // Get the template\n    Compose.findRecordByID(templateId,
-      'EmailTemplate').then(templateRecord => {\n  \n      // Find the contact
-      \   \n      Compose.findRecordByID($record.values.ContactId, 'Contact').then(contactRecord
-      => {\n        \n        // Get all the possible placeholders for the contact\n
-      \       let replacements = {}\n        for (const [key, value] of Object.entries(contactRecord.values))
-      {\n          replacements['{{Contact.' + key + '}}'] = value\n        }\n
-      \ \n        // Replace the placeholders for the values\n        let body
-      = templateRecord.values.Body\n        body = body.replace(/{{\\w+}}/g, function(all)
-      {\n           return replacements[all] || all;\n        });\n        \n
-      \       // Fill in the data of the template\n        $record.values.Subject
-      = templateRecord.values.Subject\n        $record.values.HtmlBody = body\n
-      \       \n        //Save the changes\n        return Compose.saveRecord($record)\n
-      \         .then(mySavedRecord => {\n    \n            ComposeUI.success(`The
-      template has been loaded in to the email.`)\n            ComposeUI.gotoRecordEditor(mySavedRecord)\n
-      \   \n          }).catch(err => {\n            // solve the problem\n            ComposeUI.warning(`The
-      template could not be loaded.`)\n            console.error(err)\n          })\n
-      \       \n      }).catch(err => {\n        // solve the problem\n        console.error(err)\n
-      \     })\n\n\n  }).catch(err => {\n    // solve the problem\n    console.error(err)\n
-      \ })\n\n}"
+    source: |-
+      const { toJSON, ...values } = $record.values
+      $record = new Record($record.module, { ...$record, values })
+
+      if(!$record.recordID) {
+        ComposeUI.success(`Please save the record before loading the template`)
+        return
+      }
+
+      // Check if there is a template
+      let templateId = $record.values.EmailTemplateId
+
+      if (templateId) {
+        
+          // Get the template
+          Compose.findRecordByID(templateId, 'EmailTemplate').then(templateRecord => {
+        
+            // Find the contact    
+            Compose.findRecordByID($record.values.ContactId, 'Contact').then(contactRecord => {
+              
+              // Get all the possible placeholders for the contact
+              let replacements = {}
+              for (const [key, value] of Object.entries(contactRecord.values)) {
+                replacements['{{Contact.' + key + '}}'] = value
+              }
+        
+              // Replace the placeholders for the values
+              let body = templateRecord.values.Body
+              body = body.replace(/{{\w+}}/g, function(all) {
+                return replacements[all] || all
+              })
+              
+              // Fill in the data of the template
+              $record.values.Subject = templateRecord.values.Subject
+              $record.values.HtmlBody = body
+              
+              //Save the changes
+              return Compose.saveRecord($record)
+                .then(mySavedRecord => {
+          
+                  ComposeUI.success(`The template has been loaded in to the email.`)
+                  ComposeUI.gotoRecordEditor(mySavedRecord)
+          
+                }).catch(err => {
+                  // solve the problem
+                  ComposeUI.warning(`The template could not be loaded.`)
+                  console.error(err)
+                })
+              
+            }).catch(err => {
+              // solve the problem
+              console.error(err)
+            })
+
+
+        }).catch(err => {
+          // solve the problem
+          console.error(err)
+        })
+
+      }
     async: false
     runInUA: true
     critical: true
@@ -183,16 +328,33 @@ scripts:
       module: EmailMessage
       resource: compose:record
   KnowledgeBaseInsertKBNumber:
-    source: "//Get the default settings\nreturn Compose.findLastRecord('Settings').then(settings
-      => {\n  \n  // Map the case number\n  let KBNextNumber = settings.values.KBNextNumber\n
-      \ if (typeof KBNextNumber == \"undefined\" || KBNextNumber === '' || isNaN(KBNextNumber))
-      {\n    KBNextNumber = 0\n  }\n  console.log(KBNextNumber)\n  $record.values.Number
-      = KBNextNumber\n  let KBNextNumberUpdated = parseInt(KBNextNumber,10) +
-      1\n     \n  // Update the config\n  settings.values.KBNextNumber = KBNextNumberUpdated\n
-      \ return Compose.saveRecord(settings).then(mySavedSettings => {\n    \n
-      \   console.log('Record saved, new ID', mySavedSettings.recordID)\n\n  }).catch(err
-      => {\n   // solve the problem\n   console.error(err)\n  })\n}).catch(err
-      => {\n // solve the problem\n console.error(err)\n})"
+    source: |-
+      //Get the default settings
+      return Compose.findLastRecord('Settings').then(settings => {
+        
+        // Map the case number
+        let KBNextNumber = settings.values.KBNextNumber
+        if (typeof KBNextNumber == "undefined" || KBNextNumber === '' || isNaN(KBNextNumber)) {
+          KBNextNumber = 0
+        }
+        console.log(KBNextNumber)
+        $record.values.Number = KBNextNumber
+        let KBNextNumberUpdated = parseInt(KBNextNumber,10) + 1
+          
+        // Update the config
+        settings.values.KBNextNumber = KBNextNumberUpdated
+        return Compose.saveRecord(settings).then(mySavedSettings => {
+          
+          console.log('Record saved, new ID', mySavedSettings.recordID)
+
+        }).catch(err => {
+        // solve the problem
+        console.error(err)
+        })
+      }).catch(err => {
+      // solve the problem
+      console.error(err)
+      })
     async: false
     runInUA: false
     critical: true
@@ -263,7 +425,81 @@ scripts:
       module: Case
       resource: compose:record
   UpdateSendEmail:
-    source: ""
+    source: |-
+      const { toJSON, ...values } = $record.values
+      $record = new Record($record.module, { ...$record, values })
+
+      // Get the default template from the settings.
+      return Compose.findLastRecord('Settings').then(settings => {
+        let templateId = settings.values.DefaultCaseEmailTemplate
+
+        if (templateId) {
+
+          // Get the placeholder for the Case
+          let replacements = {}
+          for (const [key, value] of Object.entries($record.values)) {
+            replacements['{{Case.' + key + '}}'] = value
+          }
+
+          // Get the placeholder for the Contact
+          Compose.findRecordByID($record.values.ContactId, 'Contact').then(contactRecord => {
+
+            // Get all the possible Contact placeholders
+            for (const [key, value] of Object.entries(contactRecord.values)) {
+              replacements['{{Contact.' + key + '}}'] = value
+            }
+
+            // Get the default template
+            return Compose.findRecordByID(templateId, 'EmailTemplate').then(templateRecord => {
+
+              // Replace the placeholders for the values in the subject
+              let subject = templateRecord.values.Subject
+              subject = subject.replace(/{{\w+}}/g, function (all) {
+                return replacements[all] || all
+              })
+
+              // Replace the placeholders for the values in the body
+              let body = templateRecord.values.Body
+              body = body.replace(/{{\w+}}/g, function (all) {
+                return replacements[all] || all
+              })
+              
+              // Create the email
+              return Compose.makeRecord({
+                'HtmlBody': body,
+                'Subject': subject,
+                'Status': 'Draft',
+                'EmailTemplateId': templateId,
+                'CaseId': $record.recordID,
+                'ContactId': $record.values.ContactId
+              }, 'EmailMessage')
+                .then(myEmailMessage => {
+
+                  return Compose.saveRecord(myEmailMessage)
+
+                }).then(mySavedEmailMessage => {
+
+                  // Redirect to the email record
+                  ComposeUI.gotoRecordEditor(mySavedEmailMessage)
+
+                }).catch(err => {
+                  // solve the problem
+                  console.error(err)
+                })
+
+            }).catch(err => {
+              // solve the problem
+              console.error(err)
+            })
+          }).catch(err => {
+            // solve the problem
+            console.error(err)
+          })
+        }
+      }).catch(err => {
+        // solve the problem
+        console.error(err)
+      })
     async: false
     runInUA: true
     critical: true
@@ -274,78 +510,149 @@ scripts:
       module: Case
       resource: compose:record
   UpdateSendNotificationsAndCalculateTimeAndCost:
-    source: "// Check if the type is NOT an incoming email. If it's not, handle
-      it as an internal update and send notifications\nif ($record.values.Type
-      !== 'Incoming email') {\n\n  //Get the cost related to the department that
-      updated the case\n  return Compose.findRecordByID($record.values.Department,
-      'Department').then(departmentRecord => {\n    let hourCost = 0\n    if (departmentRecord.values.HourCost)
-      {\n      hourCost = parseFloat(departmentRecord.values.HourCost)\n    }\n
-      \   return hourCost\n  }).catch(err => {\n    // solve the problem\n    let
-      hourCost = 0\n    return hourCost\n  })\n\n    .then((hourCost) => {\n      //
-      Calculate the cost of the update\n      let updateTime = $record.values.TimeSpend\n
-      \     let UpdateCost = 0\n      if (updateTime) {\n        UpdateCost =
-      parseFloat(hourCost) * parseFloat(updateTime)\n      }\n\n      // Add the
-      cost to the update\n      $record.values.Cost = UpdateCost\n\n      // Set
-      the notifications values to \"1\" (sent)\n      if ($record.values.SendToMailingList)
-      {\n        $record.values.NotificationCaseMailingList = 1\n      }\n      $record.values.NotificationCaseCreator
-      = 1\n      $record.values.NotificationCaseOwner = 1\n\n      // Find the
-      case related to the update\n      // Add the total cost and get the content
-      for the email and message notifications\n      Compose.findRecordByID($record.values.CaseId,
-      'Case').then(caseRecord => {\n\n        // Get the current time and cost
-      of the case\n        let caseTime = caseRecord.values.TotalTime\n        if
-      (typeof caseTime == \"undefined\" || caseTime === '' || isNaN(caseTime))
-      {\n          caseTime = 0\n        }\n        let caseCost = caseRecord.values.TotalCost\n
-      \       if (typeof caseCost == \"undefined\" || caseCost === '' || isNaN(caseCost))
-      {\n          caseCost = 0\n        }\n\n        console.log(caseTime)\n
-      \       console.log(caseCost)\n\n        caseTime = parseFloat(caseTime)
-      + parseFloat(updateTime)\n        caseCost = parseFloat(caseCost) + parseFloat(UpdateCost)\n\n
-      \       console.log(caseTime)\n        console.log(caseCost)\n\n        //
-      Save the values in the case\n        caseRecord.values.TotalTime = caseTime\n
-      \       caseRecord.values.TotalCost = caseCost\n\n        return Compose.saveRecord(caseRecord).then(mySavedCase
-      => {\n          console.log('Record saved, ID', mySavedCase.recordID)\n
-      \       }).then(() => {\n\n          // Create the update text to send out
-      via email\n          let html = 'Hi,'\n          html += '<br>'\n          html
-      += '<br>'\n          html += 'The following case has been updated:'\n          html
-      += '<br>'\n          html += '<ul>'\n          html += '<li><strong>Case
-      ID:</strong> ' + caseRecord.values.Number + '</li>'\n          html += '<li><strong>Subject:</strong>
-      ' + caseRecord.values.Subject + '</li>'\n          html += '<li><strong>Type:</strong>
-      ' + caseRecord.values.Category + '</li>'\n          html += '<li><strong>Status:</strong>
-      ' + caseRecord.values.Status + '</li>'\n          html += '<li><strong>Priority:</strong>
-      ' + caseRecord.values.Priority + '</li>'\n          html += '</ul>'\n          html
-      += '<br>'\n          html += 'Update:'\n          html += '<br>'\n          html
-      += '<ul>'\n          html += '<li><strong>Type:</strong> ' + $record.values.Type
-      + '</li>'\n          html += '<li><strong>Subject:</strong> ' + $record.values.Subject
-      + '</li>'\n          html += '<li><strong>Content:</strong> ' + $record.values.Content
-      + '</li>'\n          html += '</ul>'\n          html += '<br>'\n          html
-      += 'Kind regards,'\n          html += '<br>'\n          html += '<br>'\n
-      \         html += 'Service Cloud'\n          html += '<br>'\n          html
-      += '<br>'\n          html += '--'\n          html += '<br>'\n          html
-      += 'Ticket Summary:'\n          html += '<hr>'\n          html += caseRecord.values.Description\n\n\n
-      \         return Compose.findLastRecord('Settings').then(settings => {\n
-      \           let defaultChannel = settings.values.DefaultSupportChannel\n
-      \           let defaultCaseRecordLink = settings.values.DefaultCaseRecordLink\n\n
-      \           // Get default settings to find if there is a channel to inform
-      \       \n            if (defaultChannel && defaultCaseRecordLink) {\n              return
-      Messaging.sendMessage('Automatic update. \"' + caseRecord.values.Number
-      + '\" has been updated: ' + $record.values.Subject + ' (type: ' + $record.values.Type
-      + '). Direct link: ' + defaultCaseRecordLink + $record.recordID, defaultChannel)\n
-      \           }\n          }).then(() => {\n            // Get the contact
-      of the case record to infor via email\n            if (caseRecord.values.ContactId)
-      {\n              Compose.findRecordByID(caseRecord.values.ContactId, 'Contact').then(contactRecord
-      => {\n\n                // Check if the contact has an email address\n                if
-      (contactRecord.values.Email) {\n\n                  // Send the update text\n
-      \                 return Compose.sendMail(contactRecord.values.Email, '['
-      + caseRecord.values.Number + '] Update: ' + caseRecord.values.Subject, {
-      html: html })\n                }\n              }).catch(err => {\n                //
-      solve the problem\n                console.error(err)\n              })\n
-      \           }\n\n          }).catch(err => {\n            // solve the problem\n
-      \           console.error(err)\n          })\n\n        }).catch(err =>
-      {\n          // solve the problem\n          console.error(err)\n        })\n
-      \     }).catch(err => {\n        // solve the problem\n        console.error(err)\n
-      \     })\n    }).catch(err => {\n      // solve the problem\n      console.error(err)\n
-      \   })\n}"
+    source: |-
+      // Check if the type is NOT an incoming email. If it's not, handle it as an internal update and send notifications
+      if ($record.values.Type !== 'Incoming email') {
+
+        //Get the cost related to the department that updated the case
+        return Compose.findRecordByID($record.values.Department, 'Department').then(departmentRecord => {
+          let hourCost = 0
+          if (departmentRecord.values.HourCost) {
+            hourCost = parseFloat(departmentRecord.values.HourCost)
+          }
+          return hourCost
+        }).catch(err => {
+          // solve the problem
+          let hourCost = 0
+          return hourCost
+        })
+
+          .then((hourCost) => {
+            // Calculate the cost of the update
+            let updateTime = $record.values.TimeSpend
+            let UpdateCost = 0
+            if (updateTime) {
+              UpdateCost = parseFloat(hourCost) * parseFloat(updateTime)
+            }
+
+            // Add the cost to the update
+            $record.values.Cost = UpdateCost
+
+            // Set the notifications values to "1" (sent)
+            if ($record.values.SendToMailingList) {
+              $record.values.NotificationCaseMailingList = 1
+            }
+            $record.values.NotificationCaseCreator = 1
+
+            // Find the case related to the update
+            // Add the total cost and get the content for the email and message notifications
+            Compose.findRecordByID($record.values.CaseId, 'Case').then(caseRecord => {
+
+              // Get the current time and cost of the case
+              let caseTime = caseRecord.values.TotalTime
+              if (typeof caseTime == "undefined" || caseTime === '' || isNaN(caseTime)) {
+                caseTime = 0
+              }
+              let caseCost = caseRecord.values.TotalCost
+              if (typeof caseCost == "undefined" || caseCost === '' || isNaN(caseCost)) {
+                caseCost = 0
+              }
+
+              caseTime = parseFloat(caseTime) + parseFloat(updateTime)
+              caseCost = parseFloat(caseCost) + parseFloat(UpdateCost)
+
+              // Save the values in the case
+              caseRecord.values.TotalTime = caseTime
+              caseRecord.values.TotalCost = caseCost
+
+              return Compose.saveRecord(caseRecord).then(mySavedCase => {
+                console.log('Record saved, ID', mySavedCase.recordID)
+              }).then(() => {
+
+                // Create the update text to send out via email
+                let html = 'Hi,'
+                html += '<br>'
+                html += '<br>'
+                html += 'The following case has been updated:'
+                html += '<br>'
+                html += '<ul>'
+                html += '<li><strong>Case ID:</strong> ' + caseRecord.values.Number + '</li>'
+                html += '<li><strong>Subject:</strong> ' + caseRecord.values.Subject + '</li>'
+                html += '<li><strong>Type:</strong> ' + caseRecord.values.Category + '</li>'
+                html += '<li><strong>Status:</strong> ' + caseRecord.values.Status + '</li>'
+                html += '<li><strong>Priority:</strong> ' + caseRecord.values.Priority + '</li>'
+                html += '</ul>'
+                html += '<br>'
+                html += 'Update:'
+                html += '<br>'
+                html += '<ul>'
+                html += '<li><strong>Type:</strong> ' + $record.values.Type + '</li>'
+                html += '<li><strong>Subject:</strong> ' + $record.values.Subject + '</li>'
+                html += '<li><strong>Content:</strong> ' + $record.values.Content + '</li>'
+                html += '</ul>'
+                html += '<br>'
+                html += 'Kind regards,'
+                html += '<br>'
+                html += '<br>'
+                html += 'Service Cloud'
+                html += '<br>'
+                html += '<br>'
+                html += '--'
+                html += '<br>'
+                html += 'Ticket Summary:'
+                html += '<hr>'
+                html += caseRecord.values.Description
+
+
+                return Compose.findLastRecord('Settings').then(settings => {
+                  let defaultChannel = settings.values.DefaultSupportChannel
+                  let defaultCaseRecordLink = settings.values.DefaultCaseRecordLink
+
+                  // Get default settings to find if there is a channel to inform        
+                  if (defaultChannel && defaultCaseRecordLink) {
+                    return Messaging.sendMessage('Automatic update. "' + caseRecord.values.Number + '" has been updated: ' + $record.values.Subject + ' (type: ' + $record.values.Type + '). Direct link: ' + defaultCaseRecordLink + $record.recordID, defaultChannel)
+                  }
+                }).then(() => {
+                  // Get the contact of the case record to infor via email
+                  if (caseRecord.values.ContactId) {
+                    Compose.findRecordByID(caseRecord.values.ContactId, 'Contact').then(contactRecord => {
+
+                      // Check if the contact has an email address
+                      if (contactRecord.values.Email) {
+
+                        // Send the update text
+                        return Compose.sendMail(contactRecord.values.Email, '[' + caseRecord.values.Number + '] Update: ' + caseRecord.values.Subject, { html: html })
+                      }
+                    }).catch(err => {
+                      // solve the problem
+                      console.error(err)
+                    })
+                  }
+
+                }).catch(err => {
+                  // solve the problem
+                  console.error(err)
+                })
+
+              }).catch(err => {
+                // solve the problem
+                console.error(err)
+              })
+            }).catch(err => {
+              // solve the problem
+              console.error(err)
+            })
+          }).catch(err => {
+            // solve the problem
+            console.error(err)
+          })
+      }
     async: false
     runInUA: false
     critical: true
     enabled: true
     timeout: 0
+    triggers:
+      event: beforeUpdate
+      module: Update
+      resource: compose:record
