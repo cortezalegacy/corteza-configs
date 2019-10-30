@@ -685,6 +685,25 @@ modules:
       Facebook:
         label: Facebook
         kind: String
+      TotalTime:
+        label: Total time of all cases
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: ' hour(s)'
+      TotalCost:
+        label: Total cost of all cases
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          prefix: $
+      AccountSelect:
+        label: Accounts
+        kind: Select
+        options:
+          selectType: default
   Attachement:
     name: Attachement
     fields:
@@ -1583,6 +1602,25 @@ modules:
           format: 0
           precision: "2"
           prefix: $
+      TotalTime:
+        label: Total time of all cases
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: ' hour(s)'
+      TotalCost:
+        label: Total cost of all cases
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          prefix: $
+      DepartmentSelect:
+        label: Departments
+        kind: Select
+        options:
+          selectType: default
   EmailMessage:
     name: EmailMessage
     meta: '{}'
@@ -1895,6 +1933,25 @@ modules:
           queryFields:
           - Name
           selectType: default
+      TotalTime:
+        label: Total time of all cases
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: ' hour(s)'
+      TotalCost:
+        label: Total cost of all cases
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          prefix: $
+      ProductSelect:
+        label: Products
+        kind: Select
+        options:
+          selectType: default
   Settings:
     name: Settings
     meta: '{}'
@@ -1911,7 +1968,8 @@ modules:
         kind: Number
         options:
           format: 0
-          precision: 0
+          precision: 2
+          prefix: $
       DefaultDepartment:
         label: Default department for new ticket
         kind: Record
