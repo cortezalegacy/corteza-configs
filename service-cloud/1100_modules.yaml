@@ -2033,6 +2033,7 @@ modules:
         kind: String
         options:
           multiLine: true
+          useRichTextEditor: true
       From:
         label: From
         kind: String
