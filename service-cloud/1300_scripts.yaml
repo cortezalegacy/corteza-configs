@@ -311,9 +311,6 @@ scripts:
     - event: beforeUpdate
       module: Case
       resource: compose:record
-    - event: beforeCreate
-      module: Case
-      resource: compose:record
   ContactSetRecordLabel:
     source: |-
       // Set the record label string
