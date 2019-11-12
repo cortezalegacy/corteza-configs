@@ -1957,7 +1957,7 @@ modules:
     meta: '{}'
     fields:
       KBNextNumber:
-        label: Next number for a KB item (updates after saving a new KB item)
+        label: Next number for a KB item
         kind: Number
         options:
           format: "00000000"
@@ -1990,10 +1990,10 @@ modules:
         label: Default support channel id
         kind: String
       DefaultCaseRecordLink:
-        label: Default link for a case record (for links in messages or emails)
+        label: Default case link
         kind: String
       DefaultCaseEmailTemplate:
-        label: Default email template for a case
+        label: Default case email template
         kind: Record
         options:
           labelField: Name

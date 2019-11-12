@@ -18,7 +18,7 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 6, 18]
+      xywh: [0, 0, 6, 16]
     - title: New cases per month
       options:
         chart: NewCasesByMonth
@@ -32,14 +32,14 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 6, 3, 6]
+      xywh: [6, 6, 3, 5]
     - title: Cases by category
       options:
         chart: CasesByCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 12, 3, 6]
+      xywh: [6, 11, 3, 5]
     - title: Closed cases per month
       options:
         chart: ClosedCasesPerMonth
@@ -53,14 +53,14 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 6, 3, 6]
+      xywh: [9, 6, 3, 5]
     - title: Total cost per case category (in $)
       options:
         chart: CostPerCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 12, 3, 6]
+      xywh: [9, 11, 3, 5]
     visible: true
   Cases:
     title: Cases
@@ -84,7 +84,21 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 12, 18]
+      xywh: [0, 0, 9, 16]
+    - title: Cases by priority
+      options:
+        chart: CasesByPriority
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Cases by category
+      options:
+        chart: CasesByCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
       RecordPageForModuleCase:
         module: Case
@@ -104,7 +118,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 12]
+          xywh: [0, 0, 3, 11]
         - title: Case Details
           options:
             fields:
@@ -112,12 +126,13 @@ pages:
             - name: Escalated
             - name: AccountId
             - name: ContactId
+            - name: MailingList
             - name: TotalTime
             - name: TotalCost
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 12]
+          xywh: [9, 0, 3, 11]
         - title: Case Subject
           options:
             fields:
@@ -143,7 +158,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [3, 5, 6, 14]
+          xywh: [3, 5, 6, 13]
         - title: Related Attachments
           options:
             fields:
@@ -156,7 +171,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 12, 3, 7]
+          xywh: [0, 11, 3, 7]
         - title: Search the Knowledge Base
           options:
             fields:
@@ -171,7 +186,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [9, 12, 3, 7]
+          xywh: [9, 11, 3, 7]
         - options:
             buttons:
             - label: Add Update to this Case
@@ -263,7 +278,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 18]
+          xywh: [0, 0, 12, 16]
         visible: true
       MyNewCases:
         title: My new cases
@@ -286,7 +301,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 18]
+          xywh: [0, 0, 12, 16]
         visible: true
     visible: true
   Accounts:
@@ -307,7 +322,21 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 12, 18]
+      xywh: [0, 0, 9, 16]
+    - title: Total time spent on cases per account (in hours)
+      options:
+        chart: TimePerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Total costs of cases per account (in $)
+      options:
+        chart: CostsPerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
       RecordPageForModuleAccount:
         module: Account
@@ -373,10 +402,12 @@ pages:
             - name: Category
             - name: Priority
             - name: Status
+            - name: TotalTime
+            - name: TotalCost
             - name: createdAt
             module: Case
             page: RecordPageForModuleCase
-            perPage: 5
+            perPage: 20
             prefilter: ${recordID} = AccountId
             presort: createdAt DESC
           style:
@@ -390,7 +421,7 @@ pages:
             - name: RecordLabel
             module: Contact
             page: RecordPageForModuleContact
-            perPage: 5
+            perPage: 20
             prefilter: ${recordID} = AccountId
             presort: RecordLabel ASC
           style:
@@ -409,7 +440,7 @@ pages:
             - name: Type
             module: Entitlement
             page: RecordPageForModuleEntitlement
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
             presort: EndDate ASC
           style:
@@ -439,7 +470,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 18]
+          xywh: [0, 0, 12, 16]
         pages:
           RecordPageForModuleContact:
             module: Contact
@@ -459,7 +490,7 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 3, 12]
+              xywh: [0, 0, 3, 11]
             - title: Contact Address
               options:
                 fields:
@@ -473,7 +504,7 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [3, 0, 3, 12]
+              xywh: [3, 0, 3, 11]
             - title: Other Information
               options:
                 fields:
@@ -484,7 +515,7 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [6, 0, 3, 12]
+              xywh: [6, 0, 3, 11]
             - title: Contact Twitter Feed
               options:
                 fields: []
@@ -501,6 +532,8 @@ pages:
                 - name: Status
                 - name: Priority
                 - name: Subject
+                - name: TotalTime
+                - name: TotalCost
                 - name: createdAt
                 module: Case
                 page: RecordPageForModuleCase
@@ -510,7 +543,7 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: RecordList
-              xywh: [0, 12, 9, 9]
+              xywh: [0, 11, 9, 9]
             - title: Emails
               options:
                 allowExport: true
@@ -530,7 +563,7 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: RecordList
-              xywh: [0, 21, 9, 9]
+              xywh: [0, 20, 9, 9]
             pages:
               RecordPageForModuleEmailMessage:
                 module: EmailMessage
@@ -615,7 +648,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 18]
+          xywh: [0, 0, 12, 16]
         pages:
           RecordPageForModuleEntitlement:
             module: Entitlement
@@ -631,9 +664,6 @@ pages:
               kind: Record
               xywh: [0, 0, 4, 15]
             - title: Entitlement Status
-              description: The data below is automatically loaded using the data
-                on the left, each time when the record is saved. It is not possible
-                to overwrite this data manually.
               options:
                 fields:
                 - name: Status
@@ -644,9 +674,6 @@ pages:
               kind: Record
               xywh: [8, 0, 4, 15]
             - title: Entitlement Data
-              description: The date below is loaded from the entitlement template
-                of the product selected on the left upon record creation. It is
-                possible to overwrite this data afterwards.
               options:
                 fields:
                 - name: Name
@@ -680,60 +707,22 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 8, 18]
-    - title: Entitlement Templates for Products
+      xywh: [0, 0, 9, 16]
+    - title: Time spent per product family (in hours)
       options:
-        allowExport: true
-        fields:
-        - name: Name
-        - name: Term
-        - name: TermType
-        - name: Type
-        module: EntitlementTemplate
-        page: RecordPageForModuleEntitlementTemplate
-        perPage: 20
-        presort: Name ASC
+        chart: TimeSpentPerProductFamily
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [8, 0, 4, 18]
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Cost per product family (in $)
+      options:
+        chart: CostPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleEntitlementTemplate:
-        module: EntitlementTemplate
-        title: Record page for module "EntitlementTemplate"
-        blocks:
-        - title: Entitlement Template
-          options:
-            fields:
-            - name: Name
-            - name: Term
-            - name: TermType
-            - name: Type
-            - name: createdAt
-            - name: createdBy
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Record
-          xywh: [0, 0, 6, 18]
-        - title: Products that use this entitlements template
-          options:
-            allowExport: true
-            fields:
-            - name: ProductCode
-            - name: Name
-            - name: Family
-            - name: Photo
-            - name: IsActive
-            module: Product
-            page: RecordPageForModuleProduct
-            perPage: 20
-            prefilter: EntitlementTemplateId = ${recordID}
-            presort: ProductCode ASC
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [6, 0, 6, 18]
-        visible: false
       RecordPageForModuleProduct:
         module: Product
         title: Record page for module "Product"
@@ -744,26 +733,24 @@ pages:
             - name: ProductCode
             - name: Name
             - name: Family
+            - name: EntitlementTemplateId
             - name: Description
-            - name: Photo
-            - name: Manual
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 6, 14]
+          xywh: [0, 0, 3, 10]
         - title: Other Information
           options:
             fields:
             - name: IsActive
-            - name: EntitlementTemplateId
-            - name: TotalTime
-            - name: TotalCost
             - name: createdAt
             - name: createdBy
+            - name: updatedAt
+            - name: updatedBy
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 6, 14]
+          xywh: [9, 0, 3, 10]
         - title: Entitlements for this product
           options:
             allowExport: true
@@ -783,7 +770,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 14, 12, 8]
+          xywh: [0, 10, 12, 8]
         - title: Cases related to this product
           options:
             fields:
@@ -799,7 +786,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 22, 6, 7]
+          xywh: [0, 18, 6, 7]
         - title: Knowledge Base items related to this product
           options:
             fields:
@@ -814,8 +801,82 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [6, 22, 6, 7]
+          xywh: [6, 18, 6, 7]
+        - title: Files
+          options:
+            fields:
+            - name: Photo
+            - name: Manual
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 10]
+        - title: Cases totals
+          options:
+            fields:
+            - name: TotalTime
+            - name: TotalCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 10]
         visible: false
+      EntitlementTemplates:
+        title: Entitlement Templates
+        blocks:
+        - title: Entitlement Templates
+          options:
+            fields:
+            - name: Name
+            - name: Type
+            - name: Term
+            - name: TermType
+            module: EntitlementTemplate
+            page: RecordPageForModuleEntitlementTemplate
+            perPage: 20
+            presort: Name ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        pages:
+          RecordPageForModuleEntitlementTemplate:
+            module: EntitlementTemplate
+            title: Record page for module "EntitlementTemplate"
+            blocks:
+            - title: Entitlement Template
+              options:
+                fields:
+                - name: Name
+                - name: Term
+                - name: TermType
+                - name: Type
+                - name: createdAt
+                - name: createdBy
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 6, 16]
+            - title: Products that use this entitlements template
+              options:
+                allowExport: true
+                fields:
+                - name: ProductCode
+                - name: Name
+                - name: Family
+                - name: Photo
+                - name: IsActive
+                module: Product
+                page: RecordPageForModuleProduct
+                perPage: 20
+                prefilter: EntitlementTemplateId = ${recordID}
+                presort: ProductCode ASC
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: RecordList
+              xywh: [6, 0, 6, 16]
+            visible: false
+        visible: true
     visible: true
   KnowledgeBase:
     title: Knowledge Base
@@ -837,14 +898,21 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 17]
-    - title: KB Items
+      xywh: [0, 0, 9, 16]
+    - title: KB articles per type
       options:
-        chart: NumberOfKnowledgeBaseArticlesPerType
+        chart: KnowledgeBaseArticlesPerType
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 9]
+      xywh: [9, 0, 3, 8]
+    - title: KB articles created per day
+      options:
+        chart: KnowledgeBaseItemsCreatedPerDay
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
       RecordPageForModuleKnowledgeBase:
         module: KnowledgeBase
@@ -902,6 +970,88 @@ pages:
           xywh: [0, 0, 3, 20]
         visible: false
     visible: true
+  Departments:
+    title: Departments
+    blocks:
+    - title: Departments
+      options:
+        allowExport: true
+        fields:
+        - name: Name
+        - name: Employees
+        - name: HourCost
+        - name: TotalTime
+        - name: TotalCost
+        module: Department
+        page: RecordPageForModuleDepartment
+        perPage: 20
+        presort: Name ASC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Total time spent per department (in hours)
+      options:
+        chart: TotalTimeSpentPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Total case costs per department (in $)
+      options:
+        chart: TotalCostPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleDepartment:
+        module: Department
+        title: Record page for module "Department"
+        blocks:
+        - title: Department details
+          options:
+            fields:
+            - name: Name
+            - name: Employees
+            - name: HourCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 6, 6]
+        - title: Total time and cost of department related to work on cases
+          options:
+            fields:
+            - name: TotalTime
+            - name: TotalCost
+            - name: DepartmentSelect
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 6, 6]
+        - title: Case updates related to the department
+          options:
+            allowExport: true
+            fields:
+            - name: CaseId
+            - name: AccountId
+            - name: ContactId
+            - name: Type
+            - name: Subject
+            - name: TimeSpend
+            - name: Cost
+            - name: createdAt
+            module: Update
+            page: RecordPageForModuleUpdate
+            perPage: 20
+            prefilter: Department = ${recordID}
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 6, 12, 10]
+        visible: false
+    visible: true
   Settings:
     title: Settings
     blocks:
@@ -926,23 +1076,6 @@ pages:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
       xywh: [0, 0, 12, 5]
-    - title: Departments
-      options:
-        fields:
-        - name: Name
-        - name: Employees
-        - name: HourCost
-        - name: TotalTime
-        - name: TotalCost
-        module: Department
-        page: RecordPageForModuleDepartment
-        perPage: 20
-        prefilter: ""
-        presort: Name ASC
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 5, 12, 12]
     pages:
       RecordPageForModuleSettings:
         module: Settings
@@ -958,21 +1091,6 @@ pages:
             - name: DefaultSupportChannel
             - name: DefaultCaseRecordLink
             - name: DefaultCaseEmailTemplate
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Record
-          xywh: [0, 0, 6, 17]
-        visible: false
-      RecordPageForModuleDepartment:
-        module: Department
-        title: Record page for module "Department"
-        blocks:
-        - title: Department details
-          options:
-            fields:
-            - name: Name
-            - name: Employees
-            - name: HourCost
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
@@ -1029,12 +1147,13 @@ pages:
                 allowExport: true
                 fields:
                 - name: Subject
+                - name: CaseId
                 - name: ContactId
                 - name: ToAddress
                 - name: Status
                 - name: MessageDate
-                - name: createdAt
                 module: EmailMessage
+                page: RecordPageForModuleEmailMessage
                 perPage: 20
                 prefilter: EmailTemplateId = ${recordID}
                 presort: createdAt DESC
@@ -1054,14 +1173,14 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 6, 3, 6]
+      xywh: [3, 18, 3, 6]
     - title: Cases by priority
       options:
         chart: CasesByPriority
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 6, 3, 6]
+      xywh: [0, 18, 3, 6]
     - title: New cases per month
       options:
         chart: NewCasesByMonth
@@ -1075,14 +1194,14 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 12, 3, 6]
-    - title: Number of Knowledge base articles
+      xywh: [9, 18, 3, 6]
+    - title: Knowledge base articles per type
       options:
-        chart: NumberOfKnowledgeBaseArticlesPerType
+        chart: KnowledgeBaseArticlesPerType
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 18, 3, 6]
+      xywh: [6, 24, 3, 6]
     - title: Closed cases per month
       options:
         chart: ClosedCasesPerMonth
@@ -1096,7 +1215,7 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 12, 3, 6]
+      xywh: [6, 18, 3, 6]
     - title: Total time spent per month  (in hours)
       options:
         chart: TotalTimeSpentPerMonth
@@ -1124,7 +1243,7 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 12, 3, 6]
+      xywh: [3, 24, 3, 6]
     - title: Total time spent per category (in hours)
       options:
         chart: TotalTimeSpentPerCategory
@@ -1138,5 +1257,54 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
+      xywh: [0, 24, 3, 6]
+    - title: Total time spent per account (in hours)
+      options:
+        chart: TimePerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 12, 3, 6]
+    - title: Total costs per account (in $)
+      options:
+        chart: CostsPerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 12, 3, 6]
+    - title: Time spent per product family (in hours)
+      options:
+        chart: TimeSpentPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
       xywh: [0, 12, 3, 6]
+    - title: Total costs per product family (in $)
+      options:
+        chart: CostPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 12, 3, 6]
+    - title: Total time spent per department (in hours)
+      options:
+        chart: TotalTimeSpentPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 6, 3, 6]
+    - title: Total cost per department (in $)
+      options:
+        chart: TotalCostPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 6, 3, 6]
+    - title: KB articles created per day
+      options:
+        chart: KnowledgeBaseItemsCreatedPerDay
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 24, 3, 6]
     visible: true
