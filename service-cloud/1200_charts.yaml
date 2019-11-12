@@ -15,7 +15,6 @@ charts:
           fixTooltips: true
           type: pie
         module: Entitlement
-        renderer: {}
   AverageTimeSpentPerCase:
     name: Average time spent per case
     config:
@@ -34,7 +33,6 @@ charts:
           label: Average case time (in hours)
           type: bar
         module: Case
-        renderer: {}
   CaseUpdatesPerType:
     name: Case updates per type
     config:
@@ -51,7 +49,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Update
-        renderer: {}
   CasesByCategory:
     name: Cases by category
     config:
@@ -71,7 +68,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
-        renderer: {}
   CasesByPriority:
     name: Cases by priority
     config:
@@ -89,7 +85,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
-        renderer: {}
   CasesByStatus:
     name: Cases by status
     config:
@@ -107,7 +102,6 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
-        renderer: {}
   ClosedCasesPerMonth:
     name: Closed cases per month
     config:
@@ -127,7 +121,6 @@ charts:
           label: Closed cases
           type: line
         module: Case
-        renderer: {}
   CostPerCategory:
     name: Total costs per category
     config:
@@ -148,7 +141,6 @@ charts:
           relativeValue: false
           type: bar
         module: Case
-        renderer: {}
   CostPerProductFamily:
     name: Total costs per product family
     config:
@@ -169,7 +161,6 @@ charts:
           relativeValue: false
           type: bar
         module: Product
-        renderer: {}
   CostsPerAccount:
     name: Total costs per account
     config:
@@ -187,7 +178,6 @@ charts:
           label: Total cost ($)
           type: bar
         module: Account
-        renderer: {}
   KnowledgeBaseArticlesPerType:
     name: Knowledge Base articles per type
     config:
@@ -205,7 +195,6 @@ charts:
           relativeValue: false
           type: pie
         module: KnowledgeBase
-        renderer: {}
   KnowledgeBaseItemsCreatedPerDay:
     name: Knowledge Base items created per day
     config:
@@ -223,7 +212,6 @@ charts:
           label: Total (per day)
           type: line
         module: KnowledgeBase
-        renderer: {}
   NewCasesByMonth:
     name: New cases per month
     config:
@@ -244,7 +232,6 @@ charts:
           label: New cases
           type: line
         module: Case
-        renderer: {}
   TimePerAccount:
     name: Total time spent per account
     config:
@@ -262,7 +249,6 @@ charts:
           label: Hours
           type: pie
         module: Account
-        renderer: {}
   TimeSpentPerProductFamily:
     name: Total time Spent per product family
     config:
@@ -283,7 +269,6 @@ charts:
           relativeValue: false
           type: pie
         module: Product
-        renderer: {}
   TotalCostPerDepartment:
     name: Total costs per department
     config:
@@ -303,7 +288,6 @@ charts:
           label: Total (in $)
           type: bar
         module: Department
-        renderer: {}
   TotalCostPerMonth:
     name: Total costs per month
     config:
@@ -321,7 +305,6 @@ charts:
           label: Total cost per month (in $)
           type: bar
         module: Update
-        renderer: {}
   TotalTimeSpentPerCategory:
     name: Total time spent per category
     config:
@@ -340,7 +323,6 @@ charts:
           label: Total time spent per category (in hours)
           type: pie
         module: Case
-        renderer: {}
   TotalTimeSpentPerDepartment:
     name: Total time spent per department
     config:
@@ -359,7 +341,6 @@ charts:
           label: Total
           type: pie
         module: Department
-        renderer: {}
   TotalTimeSpentPerMonth:
     name: Total time spent per month
     config:
@@ -378,4 +359,3 @@ charts:
           label: Total time spent (in hours)
           type: bar
         module: Update
-        renderer: {}
